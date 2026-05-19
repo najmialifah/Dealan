@@ -1,0 +1,24 @@
+pipeline {
+    agent any
+    environment {
+        DOCKER_HUB_USER = 'shakilaaulia245' 
+        IMAGE_NAME      = 'punishment-service'
+        IMAGE_TAG       = 'latest'
+    }
+    stages {
+        stage('Checkout Code') {
+            steps { echo 'Mengambil kode terbaru dari Git...' }
+        }
+        stage('Run Unit Test') {
+            steps {
+                echo 'Menjalankan Go Unit Test...'
+                sh 'go test ./...'
+            }
+        }
+        stage('Build Docker Image') {
+            steps {
+                sh "docker build -t ${DOCKER_HUB_USER}/${IMAGE_NAME}:${IMAGE_TAG} ."
+            }
+        }
+    }
+}
