@@ -35,18 +35,17 @@ pipeline {
         stage('7. Deploy to Kubernetes') {
             steps {
                 dir('auth-service') {
-                    withCredentials([file(credentialsId: 'minikube-dealan', variable: 'KUBECONFIG_FILE')]) {
-                        bat 'kubectl --kubeconfig="%KUBECONFIG_FILE%" apply -f auth-k8s.yaml --validate=false'
-                    }
+                    // Langsung panggil kubectl tanpa --kubeconfig rahasia
+                    bat 'kubectl apply -f auth-k8s.yaml --validate=false'
                 }
             }
         }
         
         stage('8. Verify Deployment') {
             steps {
-                
-                withCredentials([file(credentialsId: 'minikube-dealan', variable: 'KUBECONFIG_FILE')]) {
-                    bat 'kubectl --kubeconfig="%KUBECONFIG_FILE%" get pods'
+                dir('auth-service') {
+                    // Langsung panggil kubectl untuk cek pods
+                    bat 'kubectl get pods'
                 }
             }
         }
