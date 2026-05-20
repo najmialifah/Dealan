@@ -1,7 +1,7 @@
 pipeline {
     agent any
     environment {
-        DOCKER_HUB_USER = 'shakilaaulia245' 
+        DOCKER_HUB_USER = 'kelompokdealan' 
         IMAGE_NAME      = 'rating-review-service'
         IMAGE_TAG       = 'latest'
     }
@@ -9,24 +9,58 @@ pipeline {
         stage('Checkout Code') {
             steps { echo 'Mengambil kode terbaru dari Git...' }
         }
-        stage('Run Unit Test') {
+        stage('Unit Tests') {
             steps {
-                echo 'Menjalankan Go Unit Test...'
-                sh 'go test ./...'
+                dir('rating-review-service') {
+                    echo 'Menjalankan Go Unit Test...'
+                    bat 'go test ./...'
+                }
             }
         }
-        stage('Build Docker Image') {
+        stage('Lint/Vet') {
             steps {
-                sh "docker build -t ${DOCKER_HUB_USER}/${IMAGE_NAME}:${IMAGE_TAG} ."
+                dir('rating-review-service') {
+                    echo 'Menjalankan Go Vet...'
+                    bat 'go vet ./...'
+                }
             }
         }
-
-        // INI STAGE BARU UNTUK LOGIN & PUSH KE DOCKER HUB
-        stage('Push Docker Image') {
+        stage('Build Image') {
             steps {
-                withCredentials([usernamePassword(credentialsId: 'dockerhub-Dealan', passwordVariable: 'PASS', usernameVariable: 'USER')]) {
-                    sh "echo ${PASS} | docker login -u ${USER} --password-stdin"
-                    sh "docker push ${DOCKER_HUB_USER}/${IMAGE_NAME}:${IMAGE_TAG}"
+                dir('rating-review-service') {
+                    bat "docker build -t ${DOCKER_HUB_USER}/${IMAGE_NAME}:${IMAGE_TAG} ."
+                }
+            }
+        }
+        stage('Functional Tests') {
+            steps {
+                dir('rating-review-service') {
+                    echo 'Menjalankan Functional Test...'
+                    bat 'echo "Functional test belum diimplementasikan"'
+                }
+            }
+        }
+        stage('Push Image') {
+            steps {
+                withCredentials([usernamePassword(credentialsId: 'dealan-docker', passwordVariable: 'PASS', usernameVariable: 'USER')]) {
+                    bat "echo %PASS%| docker login -u %USER% --password-stdin"
+                    bat "docker push ${DOCKER_HUB_USER}/${IMAGE_NAME}:${IMAGE_TAG}"
+                }
+            }
+        }
+        stage('Deploy di kubernetes') {
+            steps {
+                dir('rating-review-service') {
+                    echo 'Deploying to Kubernetes...'
+                    bat 'kubectl apply -f rating-review-k8s.yaml'
+                }
+            }
+        }
+        stage('Verify') {
+            steps {
+                dir('rating-review-service') {
+                    echo 'Verifying Deployment...'
+                    bat 'kubectl rollout status deployment/rating-review-service-deployment'
                 }
             }
         }

@@ -17,25 +17,19 @@ pipeline {
 
         stage('Unit Test') {
             steps {
-                dir('chat-service') {
-                    sh 'go test ./... || true'
-                }
+                sh 'go test ./... || true'
             }
         }
 
         stage('Lint / Vet') {
             steps {
-                dir('chat-service') {
-                    sh 'go vet ./... || true'
-                }
+                sh 'go vet ./... || true'
             }
         }
 
         stage('Build Docker Image') {
             steps {
-                dir('chat-service') {
-                    sh 'docker build -t $IMAGE_NAME .'
-                }
+                sh 'docker build -t $IMAGE_NAME .'
             }
         }
 
@@ -62,6 +56,12 @@ pipeline {
             steps {
                 sh 'docker ps | grep $CONTAINER_NAME'
             }
+        }
+    }
+
+    post {
+        always {
+            sh 'docker logout || true'
         }
     }
 }
