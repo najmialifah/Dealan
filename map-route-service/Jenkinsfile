@@ -9,7 +9,7 @@ pipeline {
 
         stage('Build Docker Image') {
             steps {
-                bat 'docker build -t %IMAGE_NAME% .'
+                sh 'docker build -t $IMAGE_NAME .'
             }
         }
 
@@ -17,19 +17,19 @@ pipeline {
             steps {
                 withCredentials([string(credentialsId: 'dockerhub-token', variable: 'DOCKER_TOKEN')]) {
 
-                    bat 'echo %DOCKER_TOKEN% | docker login -u shakilaaulia245 --password-stdin'
+                    sh 'echo $DOCKER_TOKEN | docker login -u shakilaaulia245 --password-stdin'
 
-                    bat 'docker push %IMAGE_NAME%'
+                    sh 'docker push $IMAGE_NAME'
                 }
             }
         }
 
         stage('Run Container') {
             steps {
-                bat 'docker stop map-route-service || exit 0'
-                bat 'docker rm map-route-service || exit 0'
+                sh 'docker stop map-route-service || true'
+                sh 'docker rm map-route-service || true'
 
-                bat 'docker run -d --name map-route-service -p 8085:8085 %IMAGE_NAME%'
+                sh 'docker run -d --name map-route-service -p 8085:8085 $IMAGE_NAME'
             }
         }
     }
