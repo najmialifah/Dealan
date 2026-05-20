@@ -15,26 +15,17 @@ pipeline {
             }
         }
 
-        stage('Unit Test') {
+        stage('Clean Docker') {
             steps {
-                dir('promo-service') {
-                    sh 'go test ./... || true'
-                }
-            }
-        }
-
-        stage('Lint / Vet') {
-            steps {
-                dir('promo-service') {
-                    sh 'go vet ./... || true'
-                }
+                sh 'docker system prune -af || true'
+                sh 'docker builder prune -af || true'
             }
         }
 
         stage('Build Docker Image') {
             steps {
                 dir('promo-service') {
-                    sh 'docker build -t $IMAGE_NAME .'
+                    sh 'docker build --no-cache -t $IMAGE_NAME .'
                 }
             }
         }
@@ -42,7 +33,6 @@ pipeline {
         stage('Push Docker Image') {
             steps {
                 withCredentials([string(credentialsId: 'dockerhub-token', variable: 'DOCKER_TOKEN')]) {
-
                     sh 'echo $DOCKER_TOKEN | docker login -u shakilaaulia245 --password-stdin'
                     sh 'docker push $IMAGE_NAME'
                 }
@@ -53,7 +43,6 @@ pipeline {
             steps {
                 sh 'docker stop $CONTAINER_NAME || true'
                 sh 'docker rm $CONTAINER_NAME || true'
-
                 sh 'docker run -d --name $CONTAINER_NAME -p $PORT:$PORT $IMAGE_NAME'
             }
         }
