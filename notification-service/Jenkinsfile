@@ -12,13 +12,17 @@ pipeline {
         }
         stage('Run Unit Test') {
             steps {
-                echo 'Menjalankan Go Unit Test...'
-                sh 'go test ./...'
+                dir('notification-service') {
+                    echo 'Menjalankan Go Unit Test...'
+                    sh 'go test ./...'
+                }
             }
         }
         stage('Build Docker Image') {
             steps {
-                sh "docker build -t ${DOCKER_HUB_USER}/${IMAGE_NAME}:${IMAGE_TAG} ."
+                dir('notification-service') {
+                    sh "docker build -t ${DOCKER_HUB_USER}/${IMAGE_NAME}:${IMAGE_TAG} ."
+                }
             }
         }
         // INI STAGE BARU UNTUK LOGIN & PUSH KE DOCKER HUB
