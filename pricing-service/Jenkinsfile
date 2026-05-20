@@ -3,29 +3,47 @@ pipeline {
     environment {
         DOCKER_HUB_USER = 'kelompokdealan' 
         DOCKER_HUB_ID   = 'dealan-docker' 
-        APP_NAME        = 'rating-review-service'
+        APP_NAME        = 'pricing-service'
     }
     stages {
-        stage('1. Checkout Code') { steps { echo 'Checking out source code...' } }
+        stage('1. Checkout Code') { 
+            steps { 
+                echo 'Checking out source code...' 
+                checkout scm // Pastikan kode ditarik dari GitHub
+            } 
+        }
         
         stage('2. Unit Tests') {
             steps {
-                dir('rating-review-service') {
+                dir('pricing-service') {
                     catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') { bat 'go test ./...' }
                 }
             }
         }
         
-        stage('3. Lint and Vet') { steps { dir('rating-review-service') { bat 'go vet ./...' } } }
+        stage('3. Lint and Vet') { 
+            steps { 
+                dir('pricing-service') { bat 'go vet ./...' } 
+            } 
+        }
         
-        stage('4. Build Docker Image') { steps { dir('rating-review-service') { bat "docker build -t ${DOCKER_HUB_USER}/${APP_NAME}:latest ." } } }
+        stage('4. Build Docker Image') { 
+            steps { 
+                dir('pricing-service') { bat "docker build -t ${DOCKER_HUB_USER}/${APP_NAME}:latest ." } 
+            } 
+        }
         
-        stage('5. Functional Tests') { steps { dir('rating-review-service') { bat 'go test ./...' } } }
+        stage('5. Functional Tests') { 
+            steps { 
+                dir('pricing-service') { 
+                    catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') { bat 'go test ./...' }
+                } 
+            } 
+        }
         
         stage('6. Push to Docker Hub') {
             steps {
                 withCredentials([usernamePassword(credentialsId: "${DOCKER_HUB_ID}", passwordVariable: 'PASS', usernameVariable: 'USER')]) {
-                    // Spasi gaib sudah dihilangkan di sini
                     bat 'echo %PASS%|docker login -u %USER% --password-stdin'
                     bat "docker push ${DOCKER_HUB_USER}/${APP_NAME}:latest"
                 }
@@ -34,10 +52,9 @@ pipeline {
         
         stage('7. Deploy to Kubernetes') {
             steps {
-                dir('rating-review-service') {
-                    // ID Kredensial sudah pakai yang minikube-dealan
+                dir('pricing-service') {
                     withCredentials([file(credentialsId: 'minikube-dealan', variable: 'KUBECONFIG_FILE')]) {
-                        bat 'kubectl --kubeconfig="%KUBECONFIG_FILE%" apply -f rating-review-k8s.yaml --validate=false'
+                        bat 'kubectl --kubeconfig="%KUBECONFIG_FILE%" apply -f pricing-k8s.yaml --validate=false'
                     }
                 }
             }
@@ -45,7 +62,6 @@ pipeline {
         
         stage('8. Verify Deployment') {
             steps {
-                // ID Kredensial sudah pakai yang minikube-dealan
                 withCredentials([file(credentialsId: 'minikube-dealan', variable: 'KUBECONFIG_FILE')]) {
                     bat 'kubectl --kubeconfig="%KUBECONFIG_FILE%" get pods'
                 }

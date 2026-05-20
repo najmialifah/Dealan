@@ -28,7 +28,7 @@ pipeline {
         stage('7. Deploy to Kubernetes') {
             steps {
                 dir('matching-service') {
-                    withCredentials([file(credentialsId: 'kube-config', variable: 'KUBECONFIG_FILE')]) {
+                    withCredentials([file(credentialsId: 'minikube-dealan', variable: 'KUBECONFIG_FILE')]) {
                         bat 'kubectl --kubeconfig="%KUBECONFIG_FILE%" apply -f matching-service-k8s.yaml --validate=false'
                     }
                 }
@@ -36,7 +36,7 @@ pipeline {
         }
         stage('8. Verify Deployment') {
             steps {
-                withCredentials([file(credentialsId: 'kube-config', variable: 'KUBECONFIG_FILE')]) {
+                withCredentials([file(credentialsId: 'minikube-dealan', variable: 'KUBECONFIG_FILE')]) {
                     bat 'kubectl --kubeconfig="%KUBECONFIG_FILE%" get pods'
                 }
             }

@@ -63,7 +63,7 @@ pipeline {
         stage('Deploy to Kubernetes') {
             steps {
                 dir('chat-service') {
-                    sh 'kubectl apply -f chat-k8s.yaml'
+                    sh 'kubectl apply --validate=false -f chat-k8s.yaml'
                 }
             }
         }

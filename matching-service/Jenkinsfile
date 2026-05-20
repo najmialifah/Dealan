@@ -2,24 +2,52 @@ pipeline {
     agent any
     environment {
         DOCKER_HUB_USER = 'kelompokdealan' 
-        DOCKER_HUB_ID = 'dealan-docker' 
-        APP_NAME = 'matching-service' 
+        DOCKER_HUB_ID   = 'dealan-docker' 
+        APP_NAME        = 'matching-service'
     }
-    
     stages {
-        stage('Build Docker Image') {
+        stage('1. Checkout Code') { steps { echo 'Checking out source code...' } }
+        
+        stage('2. Unit Tests') {
             steps {
                 dir('matching-service') {
-                    bat "docker build -t ${DOCKER_HUB_USER}/${APP_NAME}:latest ."
+                    catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') { bat 'go test ./...' }
                 }
             }
         }
         
-        stage('Push to Docker Hub') {
+        stage('3. Lint and Vet') { steps { dir('matching-service') { bat 'go vet ./...' } } }
+        
+        stage('4. Build Docker Image') { steps { dir('matching-service') { bat "docker build -t ${DOCKER_HUB_USER}/${APP_NAME}:latest ." } } }
+        
+        stage('5. Functional Tests') { steps { dir('matching-service') { bat 'go test ./...' } } }
+        
+        stage('6. Push to Docker Hub') {
             steps {
                 withCredentials([usernamePassword(credentialsId: "${DOCKER_HUB_ID}", passwordVariable: 'PASS', usernameVariable: 'USER')]) {
+                    // Spasi gaib sudah dihilangkan di sini
                     bat 'echo %PASS%|docker login -u %USER% --password-stdin'
                     bat "docker push ${DOCKER_HUB_USER}/${APP_NAME}:latest"
+                }
+            }
+        }
+        
+        stage('7. Deploy to Kubernetes') {
+            steps {
+                dir('matching-service') {
+                    // ID Kredensial sudah pakai yang minikube-dealan
+                    withCredentials([file(credentialsId: 'minikube-dealan', variable: 'KUBECONFIG_FILE')]) {
+                        bat 'kubectl --kubeconfig="%KUBECONFIG_FILE%" apply -f matching-service-k8s.yaml --validate=false'
+                    }
+                }
+            }
+        }
+        
+        stage('8. Verify Deployment') {
+            steps {
+                // ID Kredensial sudah pakai yang minikube-dealan
+                withCredentials([file(credentialsId: 'minikube-dealan', variable: 'KUBECONFIG_FILE')]) {
+                    bat 'kubectl --kubeconfig="%KUBECONFIG_FILE%" get pods'
                 }
             }
         }
