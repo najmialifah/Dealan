@@ -1,54 +1,116 @@
 pipeline {
     agent any
+
     environment {
-        DOCKER_HUB_USER = 'kelompokdealan' 
-        DOCKER_HUB_ID   = 'dealan-docker' 
+        DOCKER_HUB_USER = 'kelompokdealan'
+        DOCKER_HUB_ID   = 'dealan-docker'
         APP_NAME        = 'auth-service'
     }
+
     stages {
-        stage('1. Checkout Code') { steps { echo 'Checking out source code...' } }
-        
+
+        stage('1. Checkout Code') {
+            steps {
+                echo 'Checking out source code...'
+            }
+        }
+
         stage('2. Unit Tests') {
             steps {
                 dir('auth-service') {
-                    catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') { bat 'go test ./...' }
+                    catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                        bat 'go test ./...'
+                    }
                 }
             }
         }
-        
-        stage('3. Lint and Vet') { steps { dir('auth-service') { bat 'go vet ./...' } } }
-        
-        stage('4. Build Docker Image') { steps { dir('auth-service') { bat "docker build -t ${DOCKER_HUB_USER}/${APP_NAME}:latest ." } } }
-        
-        stage('5. Functional Tests') { steps { dir('auth-service') { bat 'go test ./...' } } }
-        
+
+        stage('3. Lint and Vet') {
+            steps {
+                dir('auth-service') {
+                    bat 'go vet ./...'
+                }
+            }
+        }
+
+        stage('4. Build Docker Image') {
+            steps {
+                dir('auth-service') {
+                    bat "docker build -t ${DOCKER_HUB_USER}/${APP_NAME}:latest ."
+                }
+            }
+        }
+
+        stage('5. Functional Tests') {
+            steps {
+                dir('auth-service') {
+                    bat 'go test ./...'
+                }
+            }
+        }
+
         stage('6. Push to Docker Hub') {
             steps {
-                withCredentials([usernamePassword(credentialsId: "${DOCKER_HUB_ID}", passwordVariable: 'PASS', usernameVariable: 'USER')]) {
-                    
+                withCredentials([
+                    usernamePassword(
+                        credentialsId: "${DOCKER_HUB_ID}",
+                        passwordVariable: 'PASS',
+                        usernameVariable: 'USER'
+                    )
+                ]) {
+
                     bat 'echo %PASS%|docker login -u %USER% --password-stdin'
                     bat "docker push ${DOCKER_HUB_USER}/${APP_NAME}:latest"
                 }
             }
         }
-        
+
         stage('7. Deploy to Kubernetes') {
             steps {
-                dir('auth-service') {
-                    // Langsung panggil kubectl tanpa --kubeconfig rahasia
-                    bat 'kubectl apply -f auth-k8s.yaml --validate=false'
+
+                withCredentials([
+                    file(credentialsId: 'minikube-dealan', variable: 'KUBECONFIG')
+                ]) {
+
+                    dir('auth-service') {
+
+                        bat '''
+                        echo Current Context:
+                        kubectl config current-context
+
+                        echo Checking Cluster:
+                        kubectl cluster-info
+
+                        echo Checking Nodes:
+                        kubectl get nodes
+
+                        echo Deploying Application:
+                        kubectl apply -f auth-k8s.yaml --validate=false
+                        '''
+                    }
                 }
             }
         }
-        
+
         stage('8. Verify Deployment') {
             steps {
-                dir('auth-service') {
-                    // Langsung panggil kubectl untuk cek pods
-                    bat 'kubectl get pods'
+
+                withCredentials([
+                    file(credentialsId: 'minikube-dealan', variable: 'KUBECONFIG')
+                ]) {
+
+                    dir('auth-service') {
+
+                        bat '''
+                        echo Checking Pods:
+                        kubectl get pods
+
+                        echo Checking Services:
+                        kubectl get svc
+                        '''
+                    }
                 }
             }
         }
-        
     }
 }
