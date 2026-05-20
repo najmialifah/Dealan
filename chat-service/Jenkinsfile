@@ -2,9 +2,10 @@ pipeline {
     agent any
 
     environment {
-        IMAGE_NAME = "shakilaaulia245/chat-service"
-        CONTAINER_NAME = "chat-service"
-        PORT = "8087"
+        DOCKER_USER  = 'shakilaaulia245'
+        IMAGE_NAME   = 'shakilaaulia245/chat-service'
+        SERVICE_DIR  = 'chat-service'
+        PORT         = '8087'
     }
 
     stages {
@@ -15,53 +16,54 @@ pipeline {
             }
         }
 
-        stage('Unit Test') {
+        stage('Unit Tests') {
             steps {
-                sh 'go test ./... || true'
+                bat "cd /d %SERVICE_DIR% && go test ./... || exit /b 0"
             }
         }
 
-        stage('Lint / Vet') {
+        stage('Lint/Vet') {
             steps {
-                sh 'go vet ./... || true'
+                bat "cd /d %SERVICE_DIR% && go vet ./... || exit /b 0"
             }
         }
 
-        stage('Build Docker Image') {
+        stage('Build Image') {
             steps {
-                sh 'docker build -t $IMAGE_NAME .'
+                bat "cd /d %SERVICE_DIR% && docker build -t %IMAGE_NAME%:latest ."
             }
         }
 
-        stage('Push Docker Image') {
+        stage('Functional Tests') {
+            steps {
+                bat "docker stop chat-service || exit /b 0"
+                bat "docker rm chat-service || exit /b 0"
+
+                bat "docker run -d --name chat-service -p %PORT%:%PORT% %IMAGE_NAME%:latest"
+            }
+        }
+
+        stage('Push Image') {
             steps {
                 withCredentials([string(credentialsId: 'dockerhub-token', variable: 'DOCKER_TOKEN')]) {
 
-                    sh 'echo $DOCKER_TOKEN | docker login -u shakilaaulia245 --password-stdin'
-                    sh 'docker push $IMAGE_NAME'
+                    bat "echo %DOCKER_TOKEN% | docker login -u %DOCKER_USER% --password-stdin"
+
+                    bat "docker push %IMAGE_NAME%:latest"
                 }
             }
         }
 
-        stage('Run Container (Functional Test)') {
+        stage('Deploy to Kubernetes') {
             steps {
-                sh 'docker stop $CONTAINER_NAME || true'
-                sh 'docker rm $CONTAINER_NAME || true'
-
-                sh 'docker run -d --name $CONTAINER_NAME -p $PORT:$PORT $IMAGE_NAME'
+                bat "cd /d %SERVICE_DIR% && kubectl apply -f chat-k8s.yaml"
             }
         }
 
-        stage('Verify') {
+        stage('Verify Deployment') {
             steps {
-                sh 'docker ps | grep $CONTAINER_NAME'
+                bat "kubectl rollout status deployment/chat-deployment"
             }
-        }
-    }
-
-    post {
-        always {
-            sh 'docker logout || true'
         }
     }
 }
