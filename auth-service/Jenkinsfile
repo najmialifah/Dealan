@@ -35,10 +35,7 @@ pipeline {
         stage('7. Deploy to Kubernetes') {
             steps {
                 dir('auth-service') {
-                    
-                    withCredentials([file(credentialsId: 'minikube-dealan', variable: 'KUBECONFIG_FILE')]) {
-                        bat 'kubectl --kubeconfig="%KUBECONFIG_FILE%" apply -f auth-k8s.yaml --validate=false'
-                    }
+                    bat 'kubectl apply -f auth-k8s.yaml --validate=false'
                 }
             }
         }
@@ -51,5 +48,6 @@ pipeline {
                 }
             }
         }
+        
     }
 }
