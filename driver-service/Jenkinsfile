@@ -35,7 +35,9 @@ pipeline {
         stage('7. Deploy to Kubernetes') {
             steps {
                 dir('driver-service') {
-                    bat 'kubectl apply -f driver-k8s.yaml --validate=false'
+                    withCredentials([file(credentialsId: 'minikube-dealan', variable: 'KUBECONFIG_FILE')]) {
+                        bat 'kubectl --kubeconfig="%KUBECONFIG_FILE%" apply -f driver-k8s.yaml --validate=false'
+                    }
                 }
             }
         }
