@@ -3,29 +3,47 @@ pipeline {
     environment {
         DOCKER_HUB_USER = 'kelompokdealan' 
         DOCKER_HUB_ID   = 'dealan-docker' 
-        APP_NAME        = 'auth-service'
+        APP_NAME        = 'shipment-service'
     }
     stages {
-        stage('1. Checkout Code') { steps { echo 'Checking out source code...' } }
+        stage('1. Checkout Code') { 
+            steps { 
+                echo 'Checking out source code...' 
+                checkout scm
+            } 
+        }
         
         stage('2. Unit Tests') {
             steps {
-                dir('auth-service') {
+                dir('shipment-service') {
                     catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') { bat 'go test ./...' }
                 }
             }
         }
         
-        stage('3. Lint and Vet') { steps { dir('auth-service') { bat 'go vet ./...' } } }
+        stage('3. Lint and Vet') { 
+            steps { 
+                dir('shipment-service') { bat 'go vet ./...' } 
+            } 
+        }
         
-        stage('4. Build Docker Image') { steps { dir('auth-service') { bat "docker build -t ${DOCKER_HUB_USER}/${APP_NAME}:latest ." } } }
+        stage('4. Build Docker Image') { 
+            steps { 
+                dir('shipment-service') { bat "docker build -t ${DOCKER_HUB_USER}/${APP_NAME}:latest ." } 
+            } 
+        }
         
-        stage('5. Functional Tests') { steps { dir('auth-service') { bat 'go test ./...' } } }
+        stage('5. Functional Tests') { 
+            steps { 
+                dir('shipment-service') { 
+                    catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') { bat 'go test ./...' }
+                } 
+            } 
+        }
         
         stage('6. Push to Docker Hub') {
             steps {
                 withCredentials([usernamePassword(credentialsId: "${DOCKER_HUB_ID}", passwordVariable: 'PASS', usernameVariable: 'USER')]) {
-                    
                     bat 'echo %PASS%|docker login -u %USER% --password-stdin'
                     bat "docker push ${DOCKER_HUB_USER}/${APP_NAME}:latest"
                 }
@@ -34,10 +52,9 @@ pipeline {
         
         stage('7. Deploy to Kubernetes') {
             steps {
-                dir('auth-service') {
-                    
+                dir('shipment-service') {
                     withCredentials([file(credentialsId: 'minikube-dealan', variable: 'KUBECONFIG_FILE')]) {
-                        bat 'kubectl --kubeconfig="%KUBECONFIG_FILE%" apply -f auth-k8s.yaml --validate=false'
+                        bat 'kubectl --kubeconfig="%KUBECONFIG_FILE%" apply -f shipment-k8s.yaml --validate=false'
                     }
                 }
             }
@@ -45,7 +62,6 @@ pipeline {
         
         stage('8. Verify Deployment') {
             steps {
-                
                 withCredentials([file(credentialsId: 'minikube-dealan', variable: 'KUBECONFIG_FILE')]) {
                     bat 'kubectl --kubeconfig="%KUBECONFIG_FILE%" get pods'
                 }

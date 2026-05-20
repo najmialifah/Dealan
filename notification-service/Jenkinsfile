@@ -1,55 +1,76 @@
 pipeline {
     agent any
     environment {
-        DOCKER_HUB_USER = 'kelompokdealan' 
-        DOCKER_HUB_ID   = 'dealan-docker' 
-        APP_NAME        = 'notification-service'
+        DOCKER_USER  = 'kelompokdealan'
+        DOCKER_TOKEN = 'dckr_pat_w0tn8ZmBXAsXwKIGuDNMcM9UYKk'
+        IMAGE_NAME   = 'kelompokdealan/notification-service'
+        SERVICE_DIR  = 'notification-service'
     }
     stages {
         stage('1. Checkout Code') { steps { echo 'Checking out source code...' } }
         
         stage('2. Unit Tests') {
             steps {
-                dir('notification-service') {
-                    catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') { bat 'go test ./...' }
-                }
+                echo 'Checking out source code from GitHub...'
+                checkout scm
             }
         }
-        
-        stage('3. Lint and Vet') { steps { dir('notification-service') { bat 'go vet ./...' } } }
-        
-        stage('4. Build Docker Image') { steps { dir('notification-service') { bat "docker build -t ${DOCKER_HUB_USER}/${APP_NAME}:latest ." } } }
-        
-        stage('5. Functional Tests') { steps { dir('notification-service') { bat 'go test ./...' } } }
-        
-        stage('6. Push to Docker Hub') {
+
+        stage('Unit Tests') {
             steps {
-                withCredentials([usernamePassword(credentialsId: "${DOCKER_HUB_ID}", passwordVariable: 'PASS', usernameVariable: 'USER')]) {
-                    // Spasi gaib sudah dihilangkan di sini
-                    bat 'echo %PASS%|docker login -u %USER% --password-stdin'
-                    bat "docker push ${DOCKER_HUB_USER}/${APP_NAME}:latest"
-                }
+                echo 'Running Unit Tests...'
+                // Menggunakan cd /d agar perpindahan drive di Windows aman, digabung dengan &&
+                bat "cd /d ${env.SERVICE_DIR} && go test -v ./service/..."
             }
         }
-        
-        stage('7. Deploy to Kubernetes') {
+
+        stage('Lint/Vet') {
             steps {
-                dir('notification-service') {
-                    // ID Kredensial sudah pakai yang minikube-dealan
-                    withCredentials([file(credentialsId: 'minikube-dealan', variable: 'KUBECONFIG_FILE')]) {
-                        bat 'kubectl --kubeconfig="%KUBECONFIG_FILE%" apply -f notification-k8s.yaml --validate=false'
-                    }
-                }
+                echo 'Running Go Vet...'
+                bat "cd /d ${env.SERVICE_DIR} && go vet ./..."
             }
         }
-        
-        stage('8. Verify Deployment') {
+
+        stage('Build Image') {
             steps {
-                // ID Kredensial sudah pakai yang minikube-dealan
-                withCredentials([file(credentialsId: 'minikube-dealan', variable: 'KUBECONFIG_FILE')]) {
-                    bat 'kubectl --kubeconfig="%KUBECONFIG_FILE%" get pods'
-                }
+                echo "Building Docker Image: ${env.IMAGE_NAME}:latest"
+                bat "cd /d ${env.SERVICE_DIR} && docker build -t ${env.IMAGE_NAME}:latest ."
             }
         }
+
+        stage('Functional Tests') {
+            steps {
+                echo 'Running Functional Tests...'
+                bat "cd /d ${env.SERVICE_DIR} && go test -v ./tests/..."
+            }
+        }
+
+        stage('Push Image') {
+            steps {
+                echo 'Logging in to Docker Hub and Pushing Image...'
+                // Sintaks Windows Batch untuk meneruskan token ke perintah docker login
+                bat "echo ${env.DOCKER_TOKEN}| docker login -u ${env.DOCKER_USER} --password-stdin"
+                bat "docker push ${env.IMAGE_NAME}:latest"
+            }
+        }
+
+        stage('Deploy to Kubernetes') {
+            steps {
+                echo 'Deploying to Minikube Cluster...'
+                bat "cd /d ${env.SERVICE_DIR} && kubectl apply -f notification-k8s.yaml"
+            }
+        }
+
+        stage('Verify Deployment') {
+            steps {
+                echo 'Verifying deployment status...'
+                bat "kubectl rollout status deployment/notification-service-deployment"
+            }
+        }
+    }
+
+    post {
+        success { echo 'Selamat! Pipeline notification Service Sukses di Windows (Kotak Hijau).' }
+        failure { echo 'Pipeline Gagal. Periksa log Windows Batch di atas untuk melihat error.' }
     }
 }
