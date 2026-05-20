@@ -14,7 +14,7 @@ pipeline {
             steps {
                 dir('notification-service') {
                     echo 'Menjalankan Go Unit Test...'
-                    sh 'go test ./...'
+                    bat 'go test ./...'
                 }
             }
         }
@@ -22,14 +22,14 @@ pipeline {
             steps {
                 dir('notification-service') {
                     echo 'Menjalankan Go Vet...'
-                    sh 'go vet ./...'
+                    bat 'go vet ./...'
                 }
             }
         }
         stage('Build Image') {
             steps {
                 dir('notification-service') {
-                    sh "docker build -t ${DOCKER_HUB_USER}/${IMAGE_NAME}:${IMAGE_TAG} ."
+                    bat "docker build -t ${DOCKER_HUB_USER}/${IMAGE_NAME}:${IMAGE_TAG} ."
                 }
             }
         }
@@ -37,30 +37,32 @@ pipeline {
             steps {
                 dir('notification-service') {
                     echo 'Menjalankan Functional Test...'
-                    sh 'echo "Functional test belum diimplementasikan"'
+                    bat 'echo "Functional test belum diimplementasikan"'
                 }
             }
         }
         stage('Push Image') {
             steps {
                 withCredentials([usernamePassword(credentialsId: 'dealan-docker', passwordVariable: 'PASS', usernameVariable: 'USER')]) {
-                    sh "echo ${PASS} | docker login -u ${USER} --password-stdin"
-                    sh "docker push ${DOCKER_HUB_USER}/${IMAGE_NAME}:${IMAGE_TAG}"
+                    bat "echo %PASS%| docker login -u %USER% --password-stdin"
+                    bat "docker push ${DOCKER_HUB_USER}/${IMAGE_NAME}:${IMAGE_TAG}"
                 }
             }
         }
         stage('Deploy di kubernetes') {
             steps {
-                echo 'Deploying to Kubernetes...'
-                // TODO: tambahkan perintah kubectl apply -f ...
-                sh 'echo "Deploy Kubernetes belum diimplementasikan"'
+                dir('notification-service') {
+                    echo 'Deploying to Kubernetes...'
+                    bat 'kubectl apply -f notification-k8s.yaml'
+                }
             }
         }
         stage('Verify') {
             steps {
-                echo 'Verifying Deployment...'
-                // TODO: tambahkan perintah verifikasi seperti kubectl rollout status ...
-                sh 'echo "Verify belum diimplementasikan"'
+                dir('notification-service') {
+                    echo 'Verifying Deployment...'
+                    bat 'kubectl rollout status deployment/notification-service-deployment'
+                }
             }
         }
     }
