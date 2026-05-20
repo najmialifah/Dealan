@@ -1,0 +1,66 @@
+pipeline {
+    agent any
+    environment {
+        DOCKER_HUB_USER = 'shakilaaulia245' 
+        IMAGE_NAME      = 'punishment-service'
+        IMAGE_TAG       = 'latest'
+    }
+    stages {
+        stage('Checkout Code') {
+            steps { echo 'Mengambil kode terbaru dari Git...' }
+        }
+        stage('Unit Tests') {
+            steps {
+                dir('punishment-service') {
+                    echo 'Menjalankan Go Unit Test...'
+                    sh 'go test ./...'
+                }
+            }
+        }
+        stage('Lint/Vet') {
+            steps {
+                dir('punishment-service') {
+                    echo 'Menjalankan Go Vet...'
+                    sh 'go vet ./...'
+                }
+            }
+        }
+        stage('Build Image') {
+            steps {
+                dir('punishment-service') {
+                    sh "docker build -t ${DOCKER_HUB_USER}/${IMAGE_NAME}:${IMAGE_TAG} ."
+                }
+            }
+        }
+        stage('Functional Tests') {
+            steps {
+                dir('punishment-service') {
+                    echo 'Menjalankan Functional Test...'
+                    sh 'echo "Functional test belum diimplementasikan"'
+                }
+            }
+        }
+        stage('Push Image') {
+            steps {
+                withCredentials([usernamePassword(credentialsId: 'dockerhub-Dealan', passwordVariable: 'PASS', usernameVariable: 'USER')]) {
+                    sh "echo ${PASS} | docker login -u ${USER} --password-stdin"
+                    sh "docker push ${DOCKER_HUB_USER}/${IMAGE_NAME}:${IMAGE_TAG}"
+                }
+            }
+        }
+        stage('Deploy di kubernetes') {
+            steps {
+                echo 'Deploying to Kubernetes...'
+                // TODO: tambahkan perintah kubectl apply -f ...
+                sh 'echo "Deploy Kubernetes belum diimplementasikan"'
+            }
+        }
+        stage('Verify') {
+            steps {
+                echo 'Verifying Deployment...'
+                // TODO: tambahkan perintah verifikasi seperti kubectl rollout status ...
+                sh 'echo "Verify belum diimplementasikan"'
+            }
+        }
+    }
+}

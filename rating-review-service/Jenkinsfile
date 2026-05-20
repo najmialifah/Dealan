@@ -1,0 +1,34 @@
+pipeline {
+    agent any
+    environment {
+        DOCKER_HUB_USER = 'shakilaaulia245' 
+        IMAGE_NAME      = 'rating-review-service'
+        IMAGE_TAG       = 'latest'
+    }
+    stages {
+        stage('Checkout Code') {
+            steps { echo 'Mengambil kode terbaru dari Git...' }
+        }
+        stage('Run Unit Test') {
+            steps {
+                echo 'Menjalankan Go Unit Test...'
+                sh 'go test ./...'
+            }
+        }
+        stage('Build Docker Image') {
+            steps {
+                sh "docker build -t ${DOCKER_HUB_USER}/${IMAGE_NAME}:${IMAGE_TAG} ."
+            }
+        }
+
+        // INI STAGE BARU UNTUK LOGIN & PUSH KE DOCKER HUB
+        stage('Push Docker Image') {
+            steps {
+                withCredentials([usernamePassword(credentialsId: 'dockerhub-Dealan', passwordVariable: 'PASS', usernameVariable: 'USER')]) {
+                    sh "echo ${PASS} | docker login -u ${USER} --password-stdin"
+                    sh "docker push ${DOCKER_HUB_USER}/${IMAGE_NAME}:${IMAGE_TAG}"
+                }
+            }
+        }
+    }
+}
