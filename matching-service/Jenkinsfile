@@ -1,0 +1,27 @@
+pipeline {
+    agent any
+    environment {
+        DOCKER_HUB_USER = 'kelompokdealan' 
+        DOCKER_HUB_ID = 'dealan-docker' 
+        APP_NAME = 'matching-service' 
+    }
+    
+    stages {
+        stage('Build Docker Image') {
+            steps {
+                dir('matching-service') {
+                    bat "docker build -t ${DOCKER_HUB_USER}/${APP_NAME}:latest ."
+                }
+            }
+        }
+        
+        stage('Push to Docker Hub') {
+            steps {
+                withCredentials([usernamePassword(credentialsId: "${DOCKER_HUB_ID}", passwordVariable: 'PASS', usernameVariable: 'USER')]) {
+                    bat 'echo %PASS% | docker login -u %USER% --password-stdin'
+                    bat "docker push ${DOCKER_HUB_USER}/${APP_NAME}:latest"
+                }
+            }
+        }
+    }
+}

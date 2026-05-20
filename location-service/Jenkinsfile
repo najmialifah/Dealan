@@ -1,0 +1,45 @@
+pipeline {
+    agent any
+    environment {
+        DOCKER_HUB_USER = 'kelompokdealan' 
+        DOCKER_HUB_ID   = 'dealan-docker' 
+        APP_NAME        = 'location-service'
+    }
+    stages {
+        stage('1. Checkout Code') { steps { echo 'Checking out source code...' } }
+        stage('2. Unit Tests') {
+            steps {
+                dir('location-service') {
+                    catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') { bat 'go test ./...' }
+                }
+            }
+        }
+        stage('3. Lint and Vet') { steps { dir('location-service') { bat 'go vet ./...' } } }
+        stage('4. Build Docker Image') { steps { dir('location-service') { bat "docker build -t ${DOCKER_HUB_USER}/${APP_NAME}:latest ." } } }
+        stage('5. Functional Tests') { steps { dir('location-service') { bat 'go test ./...' } } }
+        stage('6. Push to Docker Hub') {
+            steps {
+                withCredentials([usernamePassword(credentialsId: "${DOCKER_HUB_ID}", passwordVariable: 'PASS', usernameVariable: 'USER')]) {
+                    bat 'echo %PASS% | docker login -u %USER% --password-stdin'
+                    bat "docker push ${DOCKER_HUB_USER}/${APP_NAME}:latest"
+                }
+            }
+        }
+        stage('7. Deploy to Kubernetes') {
+            steps {
+                dir('location-service') {
+                    withCredentials([file(credentialsId: 'kube-config', variable: 'KUBECONFIG_FILE')]) {
+                        bat 'kubectl --kubeconfig="%KUBECONFIG_FILE%" apply -f location-service-k8s.yaml --validate=false'
+                    }
+                }
+            }
+        }
+        stage('8. Verify Deployment') {
+            steps {
+                withCredentials([file(credentialsId: 'kube-config', variable: 'KUBECONFIG_FILE')]) {
+                    bat 'kubectl --kubeconfig="%KUBECONFIG_FILE%" get pods'
+                }
+            }
+        }
+    }
+}
