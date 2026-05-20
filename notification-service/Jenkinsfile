@@ -18,6 +18,15 @@ pipeline {
                 }
             }
         }
+        stage('Run Functional Test') {
+            steps {
+                dir('notification-service') {
+                    echo 'Menjalankan Functional Test...'
+                    // TODO: Sesuaikan command di bawah ini dengan perintah functional test milikmu (misalnya pakai go test, postman/newman, dll)
+                    sh 'echo "Functional test belum diimplementasikan"'
+                }
+            }
+        }
         stage('Build Docker Image') {
             steps {
                 dir('notification-service') {
