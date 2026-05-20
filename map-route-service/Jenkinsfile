@@ -2,9 +2,9 @@ pipeline {
     agent any
 
     environment {
-        IMAGE_NAME = "shakilaaulia245/chat-service"
-        CONTAINER_NAME = "chat-service"
-        PORT = "8087"
+        IMAGE_NAME = "shakilaaulia245/map-route-service"
+        CONTAINER_NAME = "map-route-service"
+        PORT = "8085"
     }
 
     stages {
@@ -17,7 +17,7 @@ pipeline {
 
         stage('Unit Test') {
             steps {
-                dir('chat-service') {
+                dir('map-route-service') {
                     sh 'go test ./... || true'
                 }
             }
@@ -25,7 +25,7 @@ pipeline {
 
         stage('Lint / Vet') {
             steps {
-                dir('chat-service') {
+                dir('map-route-service') {
                     sh 'go vet ./... || true'
                 }
             }
@@ -33,7 +33,7 @@ pipeline {
 
         stage('Build Docker Image') {
             steps {
-                dir('chat-service') {
+                dir('map-route-service') {
                     sh 'docker build -t $IMAGE_NAME .'
                 }
             }
