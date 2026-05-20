@@ -1,69 +1,76 @@
 pipeline {
     agent any
+
     environment {
-        
-        DOCKER_HUB_USER = 'kelompokdealan' 
-        IMAGE_NAME      = 'notification-service'
-        IMAGE_TAG       = 'latest'
+        DOCKER_notification  = 'kelompokdealan'
+        DOCKER_TOKEN = 'dckr_pat_w0tn8ZmBXAsXwKIGuDNMcM9UYKk'
+        IMAGE_NAME   = 'kelompokdealan/notification-service'
+        SERVICE_DIR  = 'notification-service'
     }
+
     stages {
-        stage('Checkout Code') {
-            steps { echo 'Mengambil kode terbaru dari Git...' }
+        stage('Checkout') {
+            steps {
+                echo 'Checking out source code from GitHub...'
+                checkout scm
+            }
         }
+
         stage('Unit Tests') {
             steps {
-                dir('notification-service') {
-                    echo 'Menjalankan Go Unit Test...'
-                    bat 'go test ./...'
-                }
+                echo 'Running Unit Tests...'
+                // Menggunakan cd /d agar perpindahan drive di Windows aman, digabung dengan &&
+                bat "cd /d ${env.SERVICE_DIR} && go test -v ./service/..."
             }
         }
+
         stage('Lint/Vet') {
             steps {
-                dir('notification-service') {
-                    echo 'Menjalankan Go Vet...'
-                    bat 'go vet ./...'
-                }
+                echo 'Running Go Vet...'
+                bat "cd /d ${env.SERVICE_DIR} && go vet ./..."
             }
         }
+
         stage('Build Image') {
             steps {
-                dir('notification-service') {
-                    bat "docker build -t ${DOCKER_HUB_USER}/${IMAGE_NAME}:${IMAGE_TAG} ."
-                }
+                echo "Building Docker Image: ${env.IMAGE_NAME}:latest"
+                bat "cd /d ${env.SERVICE_DIR} && docker build -t ${env.IMAGE_NAME}:latest ."
             }
         }
+
         stage('Functional Tests') {
             steps {
-                dir('notification-service') {
-                    echo 'Menjalankan Functional Test...'
-                    bat 'echo "Functional test belum diimplementasikan"'
-                }
+                echo 'Running Functional Tests...'
+                bat "cd /d ${env.SERVICE_DIR} && go test -v ./tests/..."
             }
         }
+
         stage('Push Image') {
             steps {
-                withCredentials([usernamePassword(credentialsId: 'dealan-docker', passwordVariable: 'PASS', usernameVariable: 'USER')]) {
-                    bat "echo %PASS%| docker login -u %USER% --password-stdin"
-                    bat "docker push ${DOCKER_HUB_USER}/${IMAGE_NAME}:${IMAGE_TAG}"
-                }
+                echo 'Logging in to Docker Hub and Pushing Image...'
+                // Sintaks Windows Batch untuk meneruskan token ke perintah docker login
+                bat "echo ${env.DOCKER_TOKEN} | docker login -u ${env.DOCKER_notification} --password-stdin"
+                bat "docker push ${env.IMAGE_NAME}:latest"
             }
         }
-        stage('Deploy di kubernetes') {
+
+        stage('Deploy to Kubernetes') {
             steps {
-                dir('notification-service') {
-                    echo 'Deploying to Kubernetes...'
-                    bat 'kubectl apply -f notification-k8s.yaml'
-                }
+                echo 'Deploying to Minikube Cluster...'
+                bat "cd /d ${env.SERVICE_DIR} && kubectl apply -f notification-k8s.yaml"
             }
         }
-        stage('Verify') {
+
+        stage('Verify Deployment') {
             steps {
-                dir('notification-service') {
-                    echo 'Verifying Deployment...'
-                    bat 'kubectl rollout status deployment/notification-service-deployment'
-                }
+                echo 'Verifying deployment status...'
+                bat "kubectl rollout status deployment/notification-deployment"
             }
         }
+    }
+
+    post {
+        success { echo 'Selamat! Pipeline notification Service Sukses di Windows (Kotak Hijau).' }
+        failure { echo 'Pipeline Gagal. Periksa log Windows Batch di atas untuk melihat error.' }
     }
 }
