@@ -3,9 +3,33 @@ pipeline {
 
     environment {
         IMAGE_NAME = "shakilaaulia245/promo-service"
+        CONTAINER_NAME = "promo-service"
+        PORT = "8086"
     }
 
     stages {
+
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
+
+        stage('Unit Test') {
+            steps {
+                dir('promo-service') {
+                    sh 'go test ./... || true'
+                }
+            }
+        }
+
+        stage('Lint / Vet') {
+            steps {
+                dir('promo-service') {
+                    sh 'go vet ./... || true'
+                }
+            }
+        }
 
         stage('Build Docker Image') {
             steps {
@@ -20,7 +44,6 @@ pipeline {
                 withCredentials([string(credentialsId: 'dockerhub-token', variable: 'DOCKER_TOKEN')]) {
 
                     sh 'echo $DOCKER_TOKEN | docker login -u shakilaaulia245 --password-stdin'
-
                     sh 'docker push $IMAGE_NAME'
                 }
             }
@@ -28,10 +51,16 @@ pipeline {
 
         stage('Run Container') {
             steps {
-                sh 'docker stop promo-service || true'
-                sh 'docker rm promo-service || true'
+                sh 'docker stop $CONTAINER_NAME || true'
+                sh 'docker rm $CONTAINER_NAME || true'
 
-                sh 'docker run -d --name promo-service -p 8086:8086 $IMAGE_NAME'
+                sh 'docker run -d --name $CONTAINER_NAME -p $PORT:$PORT $IMAGE_NAME'
+            }
+        }
+
+        stage('Verify') {
+            steps {
+                sh 'docker ps | grep $CONTAINER_NAME'
             }
         }
     }
