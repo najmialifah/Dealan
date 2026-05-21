@@ -1,33 +1,44 @@
 apiVersion: apps/v1
 kind: Deployment
+
 metadata:
   name: chat-deployment
+
 spec:
   replicas: 1
+
   selector:
     matchLabels:
       app: chat-service
+
   template:
     metadata:
       labels:
         app: chat-service
+
     spec:
       containers:
       - name: chat-service
-        image: shakilaaulia245/chat-service:latest
+
+        image: kelompokdealan/chat-service:latest
+
         ports:
         - containerPort: 8087
 
 ---
 apiVersion: v1
 kind: Service
+
 metadata:
   name: chat-service
+
 spec:
   selector:
     app: chat-service
+
   ports:
     - protocol: TCP
       port: 8087
       targetPort: 8087
+
   type: NodePort
