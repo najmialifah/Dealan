@@ -1,8 +1,9 @@
 package http
 
 import (
-	"encoding/json"
 	"net/http"
+
+	"github.com/gin-gonic/gin"
 	"github.com/shakilaaulia/Dealan/punishment-service/domain"
 	"github.com/shakilaaulia/Dealan/punishment-service/service"
 )
@@ -11,25 +12,29 @@ type PunishmentHandler struct {
 	svc service.PunishmentService
 }
 
+// NewPunishmentHandler membuat instance baru dari handler punishment
 func NewPunishmentHandler(svc service.PunishmentService) *PunishmentHandler {
 	return &PunishmentHandler{svc: svc}
 }
 
-func (h *PunishmentHandler) Apply(w http.ResponseWriter, r *http.Request) {
+// Apply menangani request POST untuk menerapkan sanksi kepada akun
+func (h *PunishmentHandler) Apply(c *gin.Context) {
 	var req domain.PunishmentRequest
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	res, err := h.svc.ApplyPunishment(r.Context(), req)
+	res, err := h.svc.ApplyPunishment(c.Request.Context(), req)
 	if err != nil {
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(w).Encode(map[string]string{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(res)
+	c.JSON(http.StatusOK, res)
+}
+
+// SetupRoutes mendefinisikan rute API untuk punishment service
+func SetupRoutes(r *gin.Engine, handler *PunishmentHandler) {
+	r.POST("/punishment/apply", handler.Apply)
 }

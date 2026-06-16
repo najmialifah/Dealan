@@ -1,23 +1,74 @@
 package main
 
 import (
+	"context"
 	"log"
 	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
+	"time"
 
+	"github.com/gin-gonic/gin"
 	deliveryHttp "promo-service/delivery/http"
+	"promo-service/repository"
 	"promo-service/service"
+	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
 )
 
 func main() {
+	// 1. Inisialisasi Database PostgreSQL menggunakan GORM
+	dbURL := os.Getenv("DB_URL")
+	if dbURL == "" {
+		dbURL = "postgres://dealan:dealan_secret@localhost:5432/dealan_db?sslmode=disable"
+	}
 
-	svc := service.NewPromoService(nil)
+	db, err := gorm.Open(postgres.Open(dbURL), &gorm.Config{})
+	if err != nil {
+		log.Fatalf("[Promo Service] Gagal terhubung ke database: %v", err)
+	}
+	log.Println("[Promo Service] Koneksi database PostgreSQL berhasil terjalin")
+
+	// 2. Inisialisasi Repository dan Service
+	repo := repository.NewPostgresRepository(db)
+	svc := service.NewPromoService(repo)
+
+	// 3. Setup Gin HTTP Server & Rute
+	r := gin.Default()
 	handler := deliveryHttp.NewPromoHandler(svc)
+	deliveryHttp.SetupRoutes(r, handler)
 
-	mux := http.NewServeMux()
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8087" // default port
+	}
 
-	mux.HandleFunc("/promo", handler.ApplyPromo)
+	srv := &http.Server{
+		Addr:    ":" + port,
+		Handler: r,
+	}
 
-	log.Println("Promo Service running on :8086")
+	// Menjalankan server HTTP di goroutine terpisah
+	go func() {
+		log.Printf("[Promo Service] Berjalan di port %s\n", port)
+		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			log.Fatalf("[Promo Service] Gagal menjalankan HTTP server: %v", err)
+		}
+	}()
 
-	http.ListenAndServe(":8086", mux)
+	// Graceful Shutdown
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
+	<-quit
+	log.Println("[Promo Service] Memulai proses shutdown...")
+
+	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer shutdownCancel()
+
+	if err := srv.Shutdown(shutdownCtx); err != nil {
+		log.Fatalf("[Promo Service] HTTP Server terpaksa dimatikan: %v", err)
+	}
+
+	log.Println("[Promo Service] Sukses dimatikan secara aman.")
 }

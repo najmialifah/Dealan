@@ -1,8 +1,9 @@
 package http
 
 import (
-	"encoding/json"
 	"net/http"
+
+	"github.com/gin-gonic/gin"
 	"github.com/shakilaaulia/Dealan/rating-review-service/domain"
 	"github.com/shakilaaulia/Dealan/rating-review-service/service"
 )
@@ -11,25 +12,29 @@ type RatingHandler struct {
 	svc service.RatingService
 }
 
+// NewRatingHandler membuat instance baru dari handler rating
 func NewRatingHandler(svc service.RatingService) *RatingHandler {
 	return &RatingHandler{svc: svc}
 }
 
-func (h *RatingHandler) Submit(w http.ResponseWriter, r *http.Request) {
+// Submit menangani request POST untuk submit rating dan review baru
+func (h *RatingHandler) Submit(c *gin.Context) {
 	var req domain.RatingRequest
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	res, err := h.svc.SubmitReview(r.Context(), req)
+	res, err := h.svc.SubmitReview(c.Request.Context(), req)
 	if err != nil {
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(w).Encode(map[string]string{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(res)
+	c.JSON(http.StatusOK, res)
+}
+
+// SetupRoutes mendaftarkan rute-rute API untuk rating service
+func SetupRoutes(r *gin.Engine, handler *RatingHandler) {
+	r.POST("/rating/submit", handler.Submit)
 }

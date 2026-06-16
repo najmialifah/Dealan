@@ -1,38 +1,41 @@
 package http
 
 import (
-	"encoding/json"
 	"net/http"
-	
+
 	"github.com/shakilaaulia/Dealan/notification-service/domain"
 	"github.com/shakilaaulia/Dealan/notification-service/service"
+	"github.com/gin-gonic/gin"
 )
 
 type NotificationHandler struct {
-	svc service.NotificationService // Handler memanggil Service
+	svc service.NotificationService
 }
 
+// NewNotificationHandler membuat instance baru dari handler HTTP notifikasi
 func NewNotificationHandler(svc service.NotificationService) *NotificationHandler {
 	return &NotificationHandler{svc: svc}
 }
 
-func (h *NotificationHandler) Send(w http.ResponseWriter, r *http.Request) {
+// Send menangani request POST untuk mengirim notifikasi secara manual
+func (h *NotificationHandler) Send(c *gin.Context) {
 	var req domain.NotificationRequest
 	
-	// 1. Decode data JSON dari request body ke struct
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	// 2. Panggil fungsi di layer Service
-	resp, err := h.svc.SendNotification(r.Context(), req)
+	resp, err := h.svc.SendNotification(c.Request.Context(), req)
 	if err != nil {
-		// Jika service error, kirim status 500
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	// 3. Kirim balik hasilnya dalam bentuk JSON
-	json.NewEncoder(w).Encode(resp)
+	c.JSON(http.StatusOK, resp)
+}
+
+// SetupRoutes mendefinisikan rute endpoint untuk Notification Service
+func SetupRoutes(r *gin.Engine, handler *NotificationHandler) {
+	r.POST("/notification/send", handler.Send)
 }
