@@ -1,24 +1,22 @@
-package controller
+package controller // WAJIB package controller
 
 import (
-	"matching-service/models"
-	"matching-service/service"
+	"matching-service/domain"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 )
 
 type MatchingController struct {
-	svc service.MatchingService
+	svc domain.MatchingService
 }
 
-func NewMatchingController(svc service.MatchingService) *MatchingController {
+func NewMatchingController(svc domain.MatchingService) *MatchingController {
 	return &MatchingController{svc: svc}
 }
 
-// MatchDriver adalah handler HTTP untuk menerima permintaan mencarikan driver untuk order tertentu
 func (c *MatchingController) MatchDriver(ctx *gin.Context) {
-	var req models.MatchRequest
+	var req domain.MatchRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Format request tidak valid: " + err.Error()})
 		return
@@ -26,7 +24,6 @@ func (c *MatchingController) MatchDriver(ctx *gin.Context) {
 
 	driver, err := c.svc.MatchOrder(ctx.Request.Context(), &req)
 	if err != nil {
-		// Asumsi jika pesan mengandung "tidak ada", kita kembalikan NotFound
 		if err.Error() == "tidak ada driver yang ditemukan di sekitar lokasi" {
 			ctx.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
 			return

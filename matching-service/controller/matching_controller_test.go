@@ -5,7 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"matching-service/models"
+	"matching-service/domain" // Sudah diganti ke domain
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -19,10 +19,10 @@ type MockMatchingService struct {
 	mock.Mock
 }
 
-func (m *MockMatchingService) MatchOrder(ctx context.Context, req *models.MatchRequest) (*models.MatchedDriver, error) {
+func (m *MockMatchingService) MatchOrder(ctx context.Context, req *domain.MatchRequest) (*domain.MatchedDriver, error) {
 	args := m.Called(ctx, req)
 	if args.Get(0) != nil {
-		return args.Get(0).(*models.MatchedDriver), args.Error(1)
+		return args.Get(0).(*domain.MatchedDriver), args.Error(1)
 	}
 	return nil, args.Error(1)
 }
@@ -35,15 +35,15 @@ func TestMatchingController_MatchDriver_Success(t *testing.T) {
 	r := gin.Default()
 	r.POST("/api/v1/match/", ctrl.MatchDriver)
 
-	reqBody := models.MatchRequest{
+	reqBody := domain.MatchRequest{
 		OrderID:   1,
 		Latitude:  -6.2,
 		Longitude: 106.8,
 	}
 	jsonBody, _ := json.Marshal(reqBody)
 
-	expectedDriver := &models.MatchedDriver{
-		DriverID:  100,
+	expectedDriver := &domain.MatchedDriver{
+		DriverID:  "driver-100", // Diubah menjadi string sesuai kontrak domain
 		Distance:  10,
 	}
 
@@ -71,14 +71,14 @@ func TestMatchingController_MatchDriver_NotFound(t *testing.T) {
 	r := gin.Default()
 	r.POST("/api/v1/match/", ctrl.MatchDriver)
 
-	reqBody := models.MatchRequest{
+	reqBody := domain.MatchRequest{
 		OrderID:   1,
 		Latitude:  -6.2,
 		Longitude: 106.8,
 	}
 	jsonBody, _ := json.Marshal(reqBody)
 
-	mockSvc.On("MatchOrder", mock.Anything, &reqBody).Return((*models.MatchedDriver)(nil), errors.New("tidak ada driver yang ditemukan di sekitar lokasi"))
+	mockSvc.On("MatchOrder", mock.Anything, &reqBody).Return((*domain.MatchedDriver)(nil), errors.New("tidak ada driver yang ditemukan di sekitar lokasi"))
 
 	req, _ := http.NewRequest(http.MethodPost, "/api/v1/match/", bytes.NewBuffer(jsonBody))
 	req.Header.Set("Content-Type", "application/json")

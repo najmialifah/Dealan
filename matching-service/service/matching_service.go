@@ -6,28 +6,26 @@ import (
 	"errors"
 	"fmt"
 	"log"
-	"matching-service/models"
-	"matching-service/repository"
+	"matching-service/domain"
 
 	"github.com/segmentio/kafka-go"
 	"gorm.io/gorm"
 )
 
+// Kita hanya perlu define interface KafkaProducer di sini,
+// karena MatchingService dan MatchingRepository sudah ada di domain.
 type KafkaProducer interface {
 	WriteMessages(ctx context.Context, msgs ...kafka.Message) error
 }
 
-type MatchingService interface {
-	MatchOrder(ctx context.Context, req *models.MatchRequest) (*models.MatchedDriver, error)
-}
-
 type matchingService struct {
-	repo          repository.MatchingRepository
+	repo          domain.MatchingRepository // Panggil dari domain
 	kafkaProducer KafkaProducer
 	kafkaTopic    string
 }
 
-func NewMatchingService(repo repository.MatchingRepository, producer KafkaProducer, topic string) MatchingService {
+// Kembalikan tipe domain.MatchingService
+func NewMatchingService(repo domain.MatchingRepository, producer KafkaProducer, topic string) domain.MatchingService {
 	return &matchingService{
 		repo:          repo,
 		kafkaProducer: producer,
@@ -35,8 +33,8 @@ func NewMatchingService(repo repository.MatchingRepository, producer KafkaProduc
 	}
 }
 
-// MatchOrder mencari driver terdekat secara asynchronous atau synchronous dan mengirim event MATCH_FOUND
-func (s *matchingService) MatchOrder(ctx context.Context, req *models.MatchRequest) (*models.MatchedDriver, error) {
+// MatchOrder mencari driver terdekat secara asynchronous
+func (s *matchingService) MatchOrder(ctx context.Context, req *domain.MatchRequest) (*domain.MatchedDriver, error) {
 	radius := req.Radius
 	if radius == 0 {
 		radius = 5000 // default 5 km
@@ -51,16 +49,15 @@ func (s *matchingService) MatchOrder(ctx context.Context, req *models.MatchReque
 		return nil, fmt.Errorf("gagal mencari driver: %w", err)
 	}
 
-	// Goroutine: Kirim pesan Kafka sebagai background process berkala / event driven agar tidak memblokir API HTTP.
-	// Penggunaan goroutine sangat disarankan jika proses notifikasi butuh waktu/retries.
-	go func(bgCtx context.Context, matched *models.MatchedDriver, orderID uint) {
+	// Goroutine: Kirim pesan Kafka sebagai background process berkala
+	go func(bgCtx context.Context, matched *domain.MatchedDriver, orderID uint) {
 		eventPayload := map[string]interface{}{
-			"event_type":  "MATCH_FOUND",
-			"order_id":    orderID,
-			"driver_id":   matched.DriverID,
-			"distance":    matched.Distance,
+			"event_type": "MATCH_FOUND",
+			"order_id":   orderID,
+			"driver_id":  matched.DriverID,
+			"distance":   matched.Distance,
 		}
-		
+
 		eventBytes, _ := json.Marshal(eventPayload)
 		err := s.kafkaProducer.WriteMessages(bgCtx, kafka.Message{
 			Topic: s.kafkaTopic,
