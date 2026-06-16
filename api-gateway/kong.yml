@@ -1,0 +1,148 @@
+_format_version: "3.0"
+_transform: true
+
+plugins:
+  - name: cors
+    config:
+      origins:
+        - "*"
+      methods:
+        - GET
+        - POST
+        - PUT
+        - PATCH
+        - DELETE
+        - OPTIONS
+      headers:
+        - Accept
+        - Accept-Version
+        - Content-Length
+        - Content-MD5
+        - Content-Type
+        - Date
+        - Authorization
+      exposed_headers:
+        - Authorization
+      credentials: true
+      max_age: 3600
+
+services:
+  - name: auth-service
+    url: http://auth-service:3001
+    routes:
+      - name: auth-route
+        paths:
+          - /auth
+        strip_path: false
+
+  - name: user-service
+    url: http://user-service:3002
+    routes:
+      - name: user-route
+        paths:
+          - /users
+        strip_path: false
+
+  - name: driver-service
+    url: http://driver-service:3003
+    routes:
+      - name: driver-route
+        paths:
+          - /drivers
+        strip_path: false
+
+  - name: order-service
+    url: http://order-service:3004
+    routes:
+      - name: order-route
+        paths:
+          - /orders
+        strip_path: false
+
+  - name: matching-service
+    url: http://matching-service:3005
+    routes:
+      - name: matching-route
+        paths:
+          - /matching
+        strip_path: false
+
+  - name: pricing-service
+    url: http://pricing-service:3006
+    routes:
+      - name: pricing-route
+        paths:
+          - /pricing
+        strip_path: false
+
+  - name: shipment-service
+    url: http://shipment-service:3007
+    routes:
+      - name: shipment-route
+        paths:
+          - /shipments
+        strip_path: false
+
+  - name: location-service
+    url: http://location-service:3008
+    routes:
+      - name: location-route
+        paths:
+          - /locations
+        strip_path: false
+
+  - name: map-route-service
+    url: http://map-route-service:3009
+    routes:
+      - name: map-route-route
+        paths:
+          - /map-routes
+        strip_path: false
+
+  - name: payment-service
+    url: http://payment-service:3010
+    routes:
+      - name: payment-route
+        paths:
+          - /payments
+        strip_path: false
+
+  - name: notification-service
+    url: http://notification-service:3011
+    routes:
+      - name: notification-route
+        paths:
+          - /notifications
+        strip_path: false
+
+  - name: rating-service
+    url: http://rating-review-service:3012
+    routes:
+      - name: rating-route
+        paths:
+          - /ratings
+        strip_path: false
+
+  - name: punishment-service
+    url: http://punishment-service:3013
+    routes:
+      - name: punishment-route
+        paths:
+          - /punishments
+        strip_path: false
+
+  - name: promo-service
+    url: http://promo-service:3014
+    routes:
+      - name: promo-route
+        paths:
+          - /promos
+        strip_path: false
+
+  - name: chat-service
+    url: http://chat-service:3015
+    routes:
+      - name: chat-route
+        paths:
+          - /chats
+        strip_path: false

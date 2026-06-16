@@ -7,6 +7,8 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/joho/godotenv" // Tambahan: Import package buat baca file .env
+
 	deliveryHttp "github.com/shakilaaulia/Dealan/auth-service/delivery/http"
 	"github.com/shakilaaulia/Dealan/auth-service/domain"
 	"github.com/shakilaaulia/Dealan/auth-service/pkg/kafka"
@@ -17,11 +19,18 @@ import (
 )
 
 func main() {
-	// Memuat konfigurasi Environment Variables
+	// 1. Memuat konfigurasi dari file .env
+	// Ini wajib dipanggil duluan biar program tahu harus nyari password ke mana
+	err := godotenv.Load()
+	if err != nil {
+		log.Println("Peringatan: File .env tidak ditemukan atau gagal dibaca, menggunakan variabel environment default")
+	}
+
+	// 2. Setup Environment Variables
 	dbURL := os.Getenv("DB_URL")
 	if dbURL == "" {
-		// Menggunakan default local untuk pengembangan
-		dbURL = "postgres://dealan:dealan_secret@localhost:5432/dealan_db?sslmode=disable"
+		// Menggunakan default local untuk pengembangan (diubah ke 127.0.0.1 biar aman)
+		dbURL = "postgres://dealan:dealan_secret@127.0.0.1:5432/dealan_db?sslmode=disable"
 	}
 
 	jwtSecret := os.Getenv("JWT_SECRET")
@@ -37,33 +46,33 @@ func main() {
 		kafkaBrokers = []string{"localhost:9092"}
 	}
 
-	// 1. Inisialisasi PostgreSQL GORM
+	// 3. Inisialisasi PostgreSQL GORM
 	log.Println("Menghubungkan ke PostgreSQL di:", dbURL)
 	db, err := gorm.Open(postgres.Open(dbURL), &gorm.Config{})
 	if err != nil {
 		log.Fatalf("Gagal terhubung ke database: %v", err)
 	}
 
-	// 2. AutoMigrate Skema Database Auth
+	// 4. AutoMigrate Skema Database Auth
 	log.Println("Menjalankan migrasi database otomatis...")
 	err = db.AutoMigrate(&domain.AuthCredential{}, &domain.OTPCode{}, &domain.RefreshToken{})
 	if err != nil {
 		log.Fatalf("Gagal melakukan migrasi database: %v", err)
 	}
 
-	// 3. Inisialisasi Kafka Producer
+	// 5. Inisialisasi Kafka Producer
 	var producer service.EventProducer
 	if len(kafkaBrokers) > 0 {
 		log.Println("Menginisialisasi Kafka Producer dengan Broker:", kafkaBrokers)
 		producer = kafka.NewKafkaProducer(kafkaBrokers)
 	}
 
-	// 4. Inisialisasi Repository, Service, dan Handler
+	// 6. Inisialisasi Repository, Service, dan Handler
 	repo := repository.NewPostgresAuthRepository(db)
 	authSvc := service.NewAuthService(repo, producer, jwtSecret, 24*time.Hour)
 	handler := deliveryHttp.NewAuthHandler(authSvc)
 
-	// 5. Inisialisasi Gin Router
+	// 7. Inisialisasi Gin Router
 	r := gin.Default()
 
 	// Menambahkan Middleware CORS sederhana
