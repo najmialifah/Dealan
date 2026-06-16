@@ -98,12 +98,7 @@ ServiceDatabase PilihanAlasan Teknis & Strategi Implementasi di Dunia Nyata1. Au
 
 ## 4. Database Schema per Service
 
-### 4.1 Auth Service — Supabase (PostgreSQL)
-
-```sql
--- ============================================
--- AUTH SERVICE SCHEMA
--- ============================================
+### 4.1 Auth Service
 
 CREATE TABLE auth_credentials (
     id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -142,12 +137,8 @@ ALTER TABLE auth_credentials ENABLE ROW LEVEL SECURITY;
 ALTER TABLE refresh_tokens ENABLE ROW LEVEL SECURITY;
 ```
 
-### 4.2 User Service — Supabase (PostgreSQL)
+### 4.2 User Service 
 
-```sql
--- ============================================
--- USER SERVICE SCHEMA
--- ============================================
 
 CREATE TABLE users (
     id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -180,12 +171,7 @@ CREATE TABLE user_ratings (
 );
 ```
 
-### 4.3 Driver Service — Supabase (PostgreSQL + PostGIS)
-
-```sql
--- ============================================
--- DRIVER SERVICE SCHEMA
--- ============================================
+### 4.3 Driver Service 
 
 CREATE EXTENSION IF NOT EXISTS postgis;
 
@@ -235,14 +221,8 @@ CREATE TABLE driver_ratings (
 );
 ```
 
-### 4.4 Order Service — MongoDB
+### 4.4 Order Service 
 
-```javascript
-// ============================================
-// ORDER SERVICE SCHEMA (MongoDB)
-// ============================================
-
-// Collection: orders
 {
   _id: ObjectId(),
   order_id: "ORD-20240601-XXXXX",    // Custom readable ID
@@ -306,12 +286,7 @@ db.orders.createIndex({ driver_id: 1, status: 1 });
 db.orders.createIndex({ created_at: -1 });
 ```
 
-### 4.5 Matching Service — Redis
-
-```
-# ============================================
-# MATCHING SERVICE — Redis Data Structures
-# ============================================
+### 4.5 Matching Service
 
 # Geo-index semua driver online per jenis layanan
 # GEOADD drivers:online:ride <longitude> <latitude> <driver_id>
@@ -334,14 +309,8 @@ SET matching:lock:order-id-xxx  driver-uuid-001  EX 30  NX
 SET matching:pending:order-id-xxx:driver-uuid-001  "waiting"  EX 30
 ```
 
-### 4.6 Location / Tracking Service — Firebase RTDB + Redis
+### 4.6 Location / Tracking Service 
 
-```javascript
-// ============================================
-// LOCATION SERVICE — Firebase RTDB Structure
-// ============================================
-
-// Path: /locations/drivers/{driver_id}
 {
   "locations": {
     "drivers": {
@@ -378,12 +347,7 @@ HSET loc:buffer:driver-uuid-001  lat -6.1754  lng 106.8272  bearing 270
 EXPIRE loc:buffer:driver-uuid-001 10
 ```
 
-### 4.7 Payment Service — Supabase (PostgreSQL)
-
-```sql
--- ============================================
--- PAYMENT SERVICE SCHEMA
--- ============================================
+### 4.7 Payment Service 
 
 CREATE TABLE transactions (
     id                  UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -448,13 +412,7 @@ CREATE TABLE idempotency_keys (
 );
 ```
 
-### 4.8 Rating Service — Supabase (PostgreSQL)
-
-```sql
--- ============================================
--- RATING SERVICE SCHEMA
--- ============================================
-
+### 4.8 Rating Service 
 CREATE TABLE reviews (
     id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     order_id        VARCHAR(50) NOT NULL,
@@ -497,12 +455,7 @@ GROUP BY target_id, target_role;
 CREATE UNIQUE INDEX ON rating_aggregates(target_id, target_role);
 ```
 
-### 4.9 Punishment Service — Supabase (PostgreSQL)
-
-```sql
--- ============================================
--- PUNISHMENT SERVICE SCHEMA
--- ============================================
+### 4.9 Punishment Service 
 
 CREATE TABLE violation_logs (
     id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -554,12 +507,7 @@ INSERT INTO punishment_rules (reason_code, threshold, penalty_type, duration_hou
 ('HARASSMENT',   1, 'banned', null, null);
 ```
 
-### 4.10 Chat Service — Supabase (Postgres)
-
-```javascript
-// ============================================
-// CHAT SERVICE — Supabase Realtime
-// ============================================
+### 4.10 Chat Service
 
 {
   "chats": {
