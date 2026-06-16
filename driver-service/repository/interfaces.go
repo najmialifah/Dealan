@@ -6,9 +6,11 @@ import (
 	"github.com/shakilaaulia/Dealan/driver-service/domain"
 )
 
-//go:generate mockgen -source=interfaces.go -destination=../mocks/mock_driver_repository.go -package=mocks
-
+// DriverRepository mendefinisikan interface database untuk driver-service menggunakan GORM
 type DriverRepository interface {
 	GetDriverByID(ctx context.Context, id string) (*domain.Driver, error)
 	UpdateDriver(ctx context.Context, driver *domain.Driver) error
+	CreateDriver(ctx context.Context, driver *domain.Driver) error
+	UpdateDriverLocation(ctx context.Context, driverID string, lat, long float64) error
+	UpdateDriverStatus(ctx context.Context, driverID string, isOnline bool, layananAktif string) error
 }

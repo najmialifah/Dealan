@@ -1,60 +1,77 @@
 package http
 
 import (
-	"encoding/json"
 	"net/http"
+	"strings"
 
+	"github.com/gin-gonic/gin"
 	"github.com/shakilaaulia/Dealan/auth-service/domain"
 	"github.com/shakilaaulia/Dealan/auth-service/service"
 )
 
+// AuthHandler adalah controller untuk REST API Autentikasi menggunakan Gin
 type AuthHandler struct {
 	svc service.AuthService
 }
 
+// NewAuthHandler membuat instance baru dari AuthHandler
 func NewAuthHandler(svc service.AuthService) *AuthHandler {
 	return &AuthHandler{svc: svc}
 }
 
-func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
+// Register menangani registrasi akun baru
+func (h *AuthHandler) Register(c *gin.Context) {
 	var req domain.RegisterRequest
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	
-	resp, err := h.svc.Register(r.Context(), req)
+
+	resp, err := h.svc.Register(c.Request.Context(), req)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	
-	json.NewEncoder(w).Encode(resp)
+
+	c.JSON(http.StatusCreated, resp)
 }
 
-func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
+// Login menangani autentikasi akun
+func (h *AuthHandler) Login(c *gin.Context) {
 	var req domain.LoginRequest
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	
-	resp, err := h.svc.Login(r.Context(), req)
+
+	resp, err := h.svc.Login(c.Request.Context(), req)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusUnauthorized)
+		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
 		return
 	}
-	
-	json.NewEncoder(w).Encode(resp)
+
+	c.JSON(http.StatusOK, resp)
 }
 
-func (h *AuthHandler) Validate(w http.ResponseWriter, r *http.Request) {
-	token := r.Header.Get("Authorization")
-	user, err := h.svc.ValidateToken(r.Context(), token)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusUnauthorized)
+// Validate memvalidasi token JWT dari header Authorization
+func (h *AuthHandler) Validate(c *gin.Context) {
+	authHeader := c.GetHeader("Authorization")
+	if authHeader == "" {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Authorization header tidak ditemukan"})
 		return
 	}
-	
-	json.NewEncoder(w).Encode(user)
+
+	tokenParts := strings.Split(authHeader, " ")
+	if len(tokenParts) != 2 || strings.ToLower(tokenParts[0]) != "bearer" {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Format token tidak valid (gunakan Bearer <token>)"})
+		return
+	}
+
+	cred, err := h.svc.ValidateToken(c.Request.Context(), tokenParts[1])
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, cred)
 }

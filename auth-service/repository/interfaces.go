@@ -6,9 +6,10 @@ import (
 	"github.com/shakilaaulia/Dealan/auth-service/domain"
 )
 
-//go:generate mockgen -source=interfaces.go -destination=../mocks/mock_auth_repository.go -package=mocks
-
+// AuthRepository mendefinisikan interface untuk interaksi data auth di PostgreSQL menggunakan GORM
 type AuthRepository interface {
-	GetUserByEmail(ctx context.Context, email string) (*domain.AuthUser, error)
-	CreateUser(ctx context.Context, user *domain.AuthUser) error
+	GetCredentialByEmail(ctx context.Context, email string) (*domain.AuthCredential, error)
+	CreateCredential(ctx context.Context, cred *domain.AuthCredential) error
+	CreateRefreshToken(ctx context.Context, rt *domain.RefreshToken) error
+	RevokeRefreshToken(ctx context.Context, tokenHash string) error
 }

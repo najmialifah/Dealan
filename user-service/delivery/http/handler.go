@@ -1,59 +1,75 @@
 package http
 
 import (
-	"encoding/json"
 	"net/http"
 
+	"github.com/gin-gonic/gin"
 	"github.com/shakilaaulia/Dealan/user-service/domain"
 	"github.com/shakilaaulia/Dealan/user-service/service"
 )
 
+// UserHandler adalah controller REST API untuk user-service menggunakan Gin
 type UserHandler struct {
 	svc service.UserService
 }
 
+// NewUserHandler membuat instance baru dari UserHandler
 func NewUserHandler(svc service.UserService) *UserHandler {
 	return &UserHandler{svc: svc}
 }
 
-func (h *UserHandler) GetProfile(w http.ResponseWriter, r *http.Request) {
-	// In reality, id comes from middleware/token
-	id := r.Header.Get("X-User-ID")
-	
-	profile, err := h.svc.GetProfile(r.Context(), id)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+// GetProfile menangani pengambilan profil user lewat X-User-ID header
+func (h *UserHandler) GetProfile(c *gin.Context) {
+	id := c.GetHeader("X-User-ID")
+	if id == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "X-User-ID header tidak ditemukan"})
 		return
 	}
-	
-	json.NewEncoder(w).Encode(profile)
+
+	profile, err := h.svc.GetProfile(c.Request.Context(), id)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, profile)
 }
 
-func (h *UserHandler) UpdateProfile(w http.ResponseWriter, r *http.Request) {
-	id := r.Header.Get("X-User-ID")
+// UpdateProfile memperbarui profil user lewat X-User-ID header
+func (h *UserHandler) UpdateProfile(c *gin.Context) {
+	id := c.GetHeader("X-User-ID")
+	if id == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "X-User-ID header tidak ditemukan"})
+		return
+	}
+
 	var req domain.UpdateProfileRequest
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	
-	if err := h.svc.UpdateProfile(r.Context(), id, req); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+
+	if err := h.svc.UpdateProfile(c.Request.Context(), id, req); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	
-	w.WriteHeader(http.StatusOK)
+
+	c.JSON(http.StatusOK, gin.H{"message": "profil berhasil diperbarui"})
 }
 
-func (h *UserHandler) GetInternalName(w http.ResponseWriter, r *http.Request) {
-	// Assuming ID comes from query string or URL path (e.g. /users/internal?id=123)
-	id := r.URL.Query().Get("id")
-	
-	name, err := h.svc.GetInternalName(r.Context(), id)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusNotFound)
+// GetInternalName menangani API internal untuk query nama user
+func (h *UserHandler) GetInternalName(c *gin.Context) {
+	id := c.Query("id")
+	if id == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "id parameter tidak ditemukan"})
 		return
 	}
-	
-	json.NewEncoder(w).Encode(map[string]string{"name": name})
+
+	name, err := h.svc.GetInternalName(c.Request.Context(), id)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"name": name})
 }

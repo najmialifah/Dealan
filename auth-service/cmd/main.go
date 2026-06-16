@@ -2,31 +2,92 @@ package main
 
 import (
 	"log"
-	"net/http"
+	"os"
+	"strings"
+	"time"
 
+	"github.com/gin-gonic/gin"
 	deliveryHttp "github.com/shakilaaulia/Dealan/auth-service/delivery/http"
+	"github.com/shakilaaulia/Dealan/auth-service/domain"
+	"github.com/shakilaaulia/Dealan/auth-service/pkg/kafka"
+	"github.com/shakilaaulia/Dealan/auth-service/repository"
 	"github.com/shakilaaulia/Dealan/auth-service/service"
-	// "github.com/shakilaaulia/Dealan/auth-service/repository" // Import when concrete repository is implemented
+	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
 )
 
 func main() {
-	// Initialize concrete repository (e.g., Postgres)
-	// repo := repository.NewPostgresAuthRepository(...)
-	
-	// Initialize service (passing nil for draft)
-	authSvc := service.NewAuthService(nil)
-	
-	// Initialize handler
-	authHandler := deliveryHttp.NewAuthHandler(authSvc)
-	
-	// Setup Routes
-	mux := http.NewServeMux()
-	mux.HandleFunc("/auth/register", authHandler.Register) // POST
-	mux.HandleFunc("/auth/login", authHandler.Login)       // POST
-	mux.HandleFunc("/auth/validate", authHandler.Validate) // POST
-	
-	log.Println("Auth Service listening on :8081")
-	if err := http.ListenAndServe(":8081", mux); err != nil {
-		log.Fatal(err)
+	// Memuat konfigurasi Environment Variables
+	dbURL := os.Getenv("DB_URL")
+	if dbURL == "" {
+		// Menggunakan default local untuk pengembangan
+		dbURL = "postgres://dealan:dealan_secret@localhost:5432/dealan_db?sslmode=disable"
+	}
+
+	jwtSecret := os.Getenv("JWT_SECRET")
+	if jwtSecret == "" {
+		jwtSecret = "dealan_super_secret_key_12345!"
+	}
+
+	kafkaBrokersEnv := os.Getenv("KAFKA_BROKERS")
+	var kafkaBrokers []string
+	if kafkaBrokersEnv != "" {
+		kafkaBrokers = strings.Split(kafkaBrokersEnv, ",")
+	} else {
+		kafkaBrokers = []string{"localhost:9092"}
+	}
+
+	// 1. Inisialisasi PostgreSQL GORM
+	log.Println("Menghubungkan ke PostgreSQL di:", dbURL)
+	db, err := gorm.Open(postgres.Open(dbURL), &gorm.Config{})
+	if err != nil {
+		log.Fatalf("Gagal terhubung ke database: %v", err)
+	}
+
+	// 2. AutoMigrate Skema Database Auth
+	log.Println("Menjalankan migrasi database otomatis...")
+	err = db.AutoMigrate(&domain.AuthCredential{}, &domain.OTPCode{}, &domain.RefreshToken{})
+	if err != nil {
+		log.Fatalf("Gagal melakukan migrasi database: %v", err)
+	}
+
+	// 3. Inisialisasi Kafka Producer
+	var producer service.EventProducer
+	if len(kafkaBrokers) > 0 {
+		log.Println("Menginisialisasi Kafka Producer dengan Broker:", kafkaBrokers)
+		producer = kafka.NewKafkaProducer(kafkaBrokers)
+	}
+
+	// 4. Inisialisasi Repository, Service, dan Handler
+	repo := repository.NewPostgresAuthRepository(db)
+	authSvc := service.NewAuthService(repo, producer, jwtSecret, 24*time.Hour)
+	handler := deliveryHttp.NewAuthHandler(authSvc)
+
+	// 5. Inisialisasi Gin Router
+	r := gin.Default()
+
+	// Menambahkan Middleware CORS sederhana
+	r.Use(func(c *gin.Context) {
+		c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
+		c.Writer.Header().Set("Access-Control-Allow-Credentials", "true")
+		c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, accept, origin, Cache-Control, X-Requested-With")
+		c.Writer.Header().Set("Access-Control-Allow-Methods", "POST, OPTIONS, GET, PUT, PATCH, DELETE")
+
+		if c.Request.Method == "OPTIONS" {
+			c.AbortWithStatus(204)
+			return
+		}
+		c.Next()
+	})
+
+	// Setup API Routes
+	r.POST("/auth/register", handler.Register)
+	r.POST("/auth/login", handler.Login)
+	r.POST("/auth/validate", handler.Validate)
+
+	// Menjalankan server di port 3001 sesuai spesifikasi docker-compose
+	log.Println("Auth Service berjalan pada port :3001")
+	if err := r.Run(":3001"); err != nil {
+		log.Fatalf("Gagal menjalankan server HTTP: %v", err)
 	}
 }

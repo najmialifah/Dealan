@@ -1,61 +1,102 @@
 package http
 
 import (
-	"encoding/json"
 	"net/http"
 
+	"github.com/gin-gonic/gin"
 	"github.com/shakilaaulia/Dealan/driver-service/domain"
 	"github.com/shakilaaulia/Dealan/driver-service/service"
 )
 
+// DriverHandler adalah controller REST API untuk driver-service menggunakan Gin
 type DriverHandler struct {
 	svc service.DriverService
 }
 
+// NewDriverHandler membuat instance baru dari DriverHandler
 func NewDriverHandler(svc service.DriverService) *DriverHandler {
 	return &DriverHandler{svc: svc}
 }
 
-func (h *DriverHandler) UpdateLocation(w http.ResponseWriter, r *http.Request) {
-	id := r.Header.Get("X-Driver-ID")
+// UpdateLocation menangani pembaruan koordinat GPS driver lewat X-Driver-ID header
+func (h *DriverHandler) UpdateLocation(c *gin.Context) {
+	id := c.GetHeader("X-Driver-ID")
+	if id == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "X-Driver-ID header tidak ditemukan"})
+		return
+	}
+
 	var req domain.UpdateLocationRequest
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	
-	if err := h.svc.UpdateLocation(r.Context(), id, req); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+
+	if err := h.svc.UpdateLocation(c.Request.Context(), id, req); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	
-	w.WriteHeader(http.StatusOK)
+
+	c.JSON(http.StatusOK, gin.H{"message": "lokasi berhasil diperbarui"})
 }
 
-func (h *DriverHandler) UpdateStatus(w http.ResponseWriter, r *http.Request) {
-	id := r.Header.Get("X-Driver-ID")
+// UpdateStatus menangani pembaruan status online dan jenis layanan aktif driver
+func (h *DriverHandler) UpdateStatus(c *gin.Context) {
+	id := c.GetHeader("X-Driver-ID")
+	if id == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "X-Driver-ID header tidak ditemukan"})
+		return
+	}
+
 	var req domain.UpdateStatusRequest
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	
-	if err := h.svc.UpdateStatus(r.Context(), id, req); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+
+	if err := h.svc.UpdateStatus(c.Request.Context(), id, req); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	
-	w.WriteHeader(http.StatusOK)
+
+	c.JSON(http.StatusOK, gin.H{"message": "status berhasil diperbarui"})
 }
 
-func (h *DriverHandler) GetProfile(w http.ResponseWriter, r *http.Request) {
-	id := r.Header.Get("X-Driver-ID")
-	
-	profile, err := h.svc.GetProfile(r.Context(), id)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+// GetProfile mengambil data profil lengkap pengemudi beserta kendaraan dan statusnya
+func (h *DriverHandler) GetProfile(c *gin.Context) {
+	id := c.GetHeader("X-Driver-ID")
+	if id == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "X-Driver-ID header tidak ditemukan"})
 		return
 	}
-	
-	json.NewEncoder(w).Encode(profile)
+
+	profile, err := h.svc.GetProfile(c.Request.Context(), id)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, profile)
+}
+
+// AddVehicle menambahkan mobil/motor baru milik driver
+func (h *DriverHandler) AddVehicle(c *gin.Context) {
+	id := c.GetHeader("X-Driver-ID")
+	if id == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "X-Driver-ID header tidak ditemukan"})
+		return
+	}
+
+	var req domain.Vehicle
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	if err := h.svc.AddVehicle(c.Request.Context(), id, req); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusCreated, gin.H{"message": "kendaraan berhasil ditambahkan"})
 }

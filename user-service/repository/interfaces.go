@@ -6,9 +6,9 @@ import (
 	"github.com/shakilaaulia/Dealan/user-service/domain"
 )
 
-//go:generate mockgen -source=interfaces.go -destination=../mocks/mock_user_repository.go -package=mocks
-
+// UserRepository mendefinisikan kontrak akses data GORM untuk user-service
 type UserRepository interface {
 	GetUserByID(ctx context.Context, id string) (*domain.User, error)
 	UpdateUser(ctx context.Context, user *domain.User) error
+	CreateUser(ctx context.Context, user *domain.User) error
 }
