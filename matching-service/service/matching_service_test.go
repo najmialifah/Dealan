@@ -1,38 +1,93 @@
 package service
 
 import (
-	"matching-service/domain"
-	"matching-service/mocks"
+	"context"
+	"matching-service/models"
 	"testing"
+	"time"
 
-	"go.uber.org/mock/gomock"
+	"github.com/segmentio/kafka-go"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
+	"gorm.io/gorm"
 )
 
-func TestFindDriver(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
+// MockMatchingRepository
+type MockMatchingRepository struct {
+	mock.Mock
+}
 
-	mockRepo := mocks.NewMockMatchingRepository(ctrl)
-	matchService := MatchingService{Repo: mockRepo}
+func (m *MockMatchingRepository) FindNearestDriver(ctx context.Context, lat, lon float64, radiusMeters float64) (*models.MatchedDriver, error) {
+	args := m.Called(ctx, lat, lon, radiusMeters)
+	if args.Get(0) != nil {
+		return args.Get(0).(*models.MatchedDriver), args.Error(1)
+	}
+	return nil, args.Error(1)
+}
 
-	t.Run("Gagal Order ID Kosong", func(t *testing.T) {
-		req := &domain.MatchingRequest{OrderID: "", ServiceType: "ride"}
-		_, err := matchService.FindDriver(req)
-		if err == nil {
-			t.Errorf("Harusnya error karena Order ID kosong")
-		}
-	})
+// MockKafkaProducer
+type MockKafkaProducer struct {
+	mock.Mock
+}
 
-	t.Run("Sukses Cari Driver", func(t *testing.T) {
-		req := &domain.MatchingRequest{OrderID: "ORD001", ServiceType: "ride"}
-		resp := &domain.MatchingResponse{DriverID: "DRV123", EstimasiWaktu: 5}
+func (m *MockKafkaProducer) WriteMessages(ctx context.Context, msgs ...kafka.Message) error {
+	args := m.Called(ctx, msgs[0])
+	return args.Error(0)
+}
 
-		// Ekspektasi mock balikin data driver
-		mockRepo.EXPECT().FindNearestDriver(req).Return(resp, nil).Times(1)
+func TestMatchingService_MatchOrder_Success(t *testing.T) {
+	mockRepo := new(MockMatchingRepository)
+	mockKafka := new(MockKafkaProducer)
+	svc := NewMatchingService(mockRepo, mockKafka, "MATCH_TEST")
 
-		hasil, err := matchService.FindDriver(req)
-		if err != nil || hasil.DriverID != "DRV123" {
-			t.Errorf("Gagal mendapatkan driver yang sesuai")
-		}
-	})
+	req := &models.MatchRequest{
+		OrderID:   10,
+		Latitude:  -6.2,
+		Longitude: 106.8,
+		Radius:    2000,
+	}
+
+	expectedDriver := &models.MatchedDriver{
+		DriverID:  100,
+		Latitude:  -6.201,
+		Longitude: 106.801,
+		Distance:  150,
+	}
+
+	mockRepo.On("FindNearestDriver", mock.Anything, -6.2, 106.8, float64(2000)).Return(expectedDriver, nil)
+	mockKafka.On("WriteMessages", mock.Anything, mock.AnythingOfType("kafka.Message")).Return(nil)
+
+	driver, err := svc.MatchOrder(context.Background(), req)
+
+	assert.NoError(t, err)
+	assert.NotNil(t, driver)
+	assert.Equal(t, uint(100), driver.DriverID)
+
+	time.Sleep(10 * time.Millisecond) // wait goroutine to fire
+	mockRepo.AssertExpectations(t)
+	mockKafka.AssertExpectations(t)
+}
+
+func TestMatchingService_MatchOrder_NotFound(t *testing.T) {
+	mockRepo := new(MockMatchingRepository)
+	mockKafka := new(MockKafkaProducer)
+	svc := NewMatchingService(mockRepo, mockKafka, "MATCH_TEST")
+
+	req := &models.MatchRequest{
+		OrderID:   10,
+		Latitude:  -6.2,
+		Longitude: 106.8,
+	}
+
+	// 5000 is default radius when not provided
+	mockRepo.On("FindNearestDriver", mock.Anything, -6.2, 106.8, float64(5000)).Return((*models.MatchedDriver)(nil), gorm.ErrRecordNotFound)
+
+	driver, err := svc.MatchOrder(context.Background(), req)
+
+	assert.Error(t, err)
+	assert.Nil(t, driver)
+	assert.Equal(t, "tidak ada driver yang ditemukan di sekitar lokasi", err.Error())
+	mockRepo.AssertExpectations(t)
+	// Kafka shouldn't be called
+	mockKafka.AssertNotCalled(t, "WriteMessages")
 }
