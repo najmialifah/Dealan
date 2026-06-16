@@ -1,0 +1,47 @@
+package controller
+
+import (
+	"net/http"
+
+	"github.com/gin-gonic/gin"
+	"map-route-service/models"
+	"map-route-service/service"
+)
+
+// MapController mengurus request HTTP yang berkaitan dengan pemetaan dan rute.
+type MapController struct {
+	mapService service.MapService
+}
+
+// NewMapController membuat instance baru untuk HTTP controller pemetaan.
+func NewMapController(svc service.MapService) *MapController {
+	return &MapController{mapService: svc}
+}
+
+// GetRoute melayani pengambilan rute perjalanan.
+// Mendukung request POST dengan body JSON, maupun GET dengan query parameters.
+func (ctrl *MapController) GetRoute(c *gin.Context) {
+	var req models.RouteRequest
+
+	if c.Request.Method == http.MethodPost {
+		if err := c.ShouldBindJSON(&req); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Format input salah: " + err.Error()})
+			return
+		}
+	} else {
+		req.Origin = c.Query("origin")
+		req.Destination = c.Query("destination")
+		if req.Origin == "" || req.Destination == "" {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Query parameter 'origin' dan 'destination' wajib diisi"})
+			return
+		}
+	}
+
+	res, err := ctrl.mapService.GetOrCreateRoute(c.Request.Context(), req)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, res)
+}

@@ -2,39 +2,78 @@ package service
 
 import (
 	"context"
+	"errors"
 	"testing"
 
-	"map-route-service/domain"
-	"map-route-service/mocks"
-
-	"go.uber.org/mock/gomock"
+	"github.com/stretchr/testify/assert"
+	"map-route-service/models"
 )
 
-func TestGetRoute(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
+// mockMapRepository adalah stub database untuk unit test map-route-service.
+type mockMapRepository struct {
+	route   *models.MapRoute
+	getErr  error
+	saveErr error
+}
 
-	mockRepo := mocks.NewMockMapRepository(ctrl)
+func (m *mockMapRepository) GetRoute(ctx context.Context, origin, destination string) (*models.MapRoute, error) {
+	if m.getErr != nil {
+		return nil, m.getErr
+	}
+	return m.route, nil
+}
 
-	mockRepo.EXPECT().
-		GetRoute(gomock.Any(), "A", "B").
-		Return(&domain.RouteResponse{
-			Distance: 10,
-			Duration: 15,
-		}, nil)
+func (m *mockMapRepository) SaveRoute(ctx context.Context, route *models.MapRoute) error {
+	return m.saveErr
+}
 
-	svc := NewMapService(mockRepo)
+// TestGetOrCreateRoute menguji logika pencarian dan pembuatan rute beserta polyline.
+func TestGetOrCreateRoute(t *testing.T) {
+	t.Run("✅ Cache hit (rute diambil dari database jika ada)", func(t *testing.T) {
+		mockRoute := &models.MapRoute{
+			Origin:      "Stasiun Gambir",
+			Destination: "Monas",
+			Polyline:    "_p~iF~ps|U@abcde",
+			Distance:    1.8,
+			Duration:    360,
+		}
+		repo := &mockMapRepository{route: mockRoute}
+		svc := NewMapService(repo)
 
-	res, err := svc.GetRoute(context.Background(), domain.RouteRequest{
-		Origin:      "A",
-		Destination: "B",
+		res, err := svc.GetOrCreateRoute(context.Background(), models.RouteRequest{
+			Origin:      "Stasiun Gambir",
+			Destination: "Monas",
+		})
+
+		assert.NoError(t, err)
+		assert.Equal(t, "Stasiun Gambir", res.Origin)
+		assert.Equal(t, "Monas", res.Destination)
+		assert.Equal(t, "_p~iF~ps|U@abcde", res.Polyline)
+		assert.Equal(t, 1.8, res.Distance)
 	})
 
-	if err != nil {
-		t.Errorf("error")
-	}
+	t.Run("✅ Cache miss (membuat rute baru deterministik dan menyimpannya)", func(t *testing.T) {
+		repo := &mockMapRepository{getErr: errors.New("record not found")}
+		svc := NewMapService(repo)
 
-	if res.Distance != 10 {
-		t.Errorf("wrong result")
-	}
+		res1, err := svc.GetOrCreateRoute(context.Background(), models.RouteRequest{
+			Origin:      "Stasiun Gambir",
+			Destination: "Monas",
+		})
+
+		assert.NoError(t, err)
+		assert.Equal(t, "Stasiun Gambir", res1.Origin)
+		assert.Equal(t, "Monas", res1.Destination)
+		assert.NotEmpty(t, res1.Polyline)
+
+		// Rute yang sama harus mengembalikan data yang deterministik
+		res2, err := svc.GetOrCreateRoute(context.Background(), models.RouteRequest{
+			Origin:      "Stasiun Gambir",
+			Destination: "Monas",
+		})
+		assert.NoError(t, err)
+		assert.Equal(t, res1.Distance, res2.Distance)
+		assert.Equal(t, res1.Duration, res2.Duration)
+		assert.Equal(t, res1.Polyline, res2.Polyline)
+	})
 }
