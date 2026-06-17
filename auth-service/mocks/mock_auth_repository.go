@@ -5,7 +5,6 @@
 //
 //	mockgen -source=interfaces.go -destination=../mocks/mock_auth_repository.go -package=mocks
 //
-
 // Package mocks is a generated GoMock package.
 package mocks
 
@@ -41,31 +40,59 @@ func (m *MockAuthRepository) EXPECT() *MockAuthRepositoryMockRecorder {
 	return m.recorder
 }
 
-// CreateUser mocks base method.
-func (m *MockAuthRepository) CreateUser(ctx context.Context, user *domain.AuthUser) error {
+// GetCredentialByEmail mocks base method.
+func (m *MockAuthRepository) GetCredentialByEmail(ctx context.Context, email string) (*domain.AuthCredential, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CreateUser", ctx, user)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// CreateUser indicates an expected call of CreateUser.
-func (mr *MockAuthRepositoryMockRecorder) CreateUser(ctx, user any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateUser", reflect.TypeOf((*MockAuthRepository)(nil).CreateUser), ctx, user)
-}
-
-// GetUserByEmail mocks base method.
-func (m *MockAuthRepository) GetUserByEmail(ctx context.Context, email string) (*domain.AuthUser, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetUserByEmail", ctx, email)
-	ret0, _ := ret[0].(*domain.AuthUser)
+	ret := m.ctrl.Call(m, "GetCredentialByEmail", ctx, email)
+	ret0, _ := ret[0].(*domain.AuthCredential)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// GetUserByEmail indicates an expected call of GetUserByEmail.
-func (mr *MockAuthRepositoryMockRecorder) GetUserByEmail(ctx, email any) *gomock.Call {
+// GetCredentialByEmail indicates an expected call of GetCredentialByEmail.
+func (mr *MockAuthRepositoryMockRecorder) GetCredentialByEmail(ctx, email any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserByEmail", reflect.TypeOf((*MockAuthRepository)(nil).GetUserByEmail), ctx, email)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetCredentialByEmail", reflect.TypeOf((*MockAuthRepository)(nil).GetCredentialByEmail), ctx, email)
+}
+
+// CreateCredential mocks base method.
+func (m *MockAuthRepository) CreateCredential(ctx context.Context, cred *domain.AuthCredential) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateCredential", ctx, cred)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// CreateCredential indicates an expected call of CreateCredential.
+func (mr *MockAuthRepositoryMockRecorder) CreateCredential(ctx, cred any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateCredential", reflect.TypeOf((*MockAuthRepository)(nil).CreateCredential), ctx, cred)
+}
+
+// CreateRefreshToken mocks base method.
+func (m *MockAuthRepository) CreateRefreshToken(ctx context.Context, rt *domain.RefreshToken) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateRefreshToken", ctx, rt)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// CreateRefreshToken indicates an expected call of CreateRefreshToken.
+func (mr *MockAuthRepositoryMockRecorder) CreateRefreshToken(ctx, rt any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateRefreshToken", reflect.TypeOf((*MockAuthRepository)(nil).CreateRefreshToken), ctx, rt)
+}
+
+// RevokeRefreshToken mocks base method.
+func (m *MockAuthRepository) RevokeRefreshToken(ctx context.Context, tokenHash string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "RevokeRefreshToken", ctx, tokenHash)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// RevokeRefreshToken indicates an expected call of RevokeRefreshToken.
+func (mr *MockAuthRepositoryMockRecorder) RevokeRefreshToken(ctx, tokenHash any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RevokeRefreshToken", reflect.TypeOf((*MockAuthRepository)(nil).RevokeRefreshToken), ctx, tokenHash)
 }
