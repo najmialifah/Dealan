@@ -22,8 +22,20 @@ func main() {
 	// 1. Inisialisasi Koneksi database PostgreSQL via GORM
 	dbURL := os.Getenv("DB_URL")
 	if dbURL == "" {
-		// Menggunakan URL default lokal jika env var kosong
-		dbURL = "postgres://dealan:dealan_secret@localhost:5432/dealan_db?sslmode=disable"
+		host := os.Getenv("DB_HOST")
+		user := os.Getenv("DB_USER")
+		password := os.Getenv("DB_PASSWORD")
+		name := os.Getenv("DB_NAME")
+		port := os.Getenv("DB_PORT")
+
+		if host != "" && user != "" && name != "" {
+			if port == "" {
+				port = "5432"
+			}
+			dbURL = "postgres://" + user + ":" + password + "@" + host + ":" + port + "/" + name + "?sslmode=disable"
+		} else {
+			dbURL = "postgres://postgres:password@localhost:5432/dealan?sslmode=disable"
+		}
 	}
 
 	db, err := gorm.Open(postgres.Open(dbURL), &gorm.Config{})

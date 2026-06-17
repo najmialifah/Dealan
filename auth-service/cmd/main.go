@@ -30,7 +30,7 @@ func main() {
 	dbURL := os.Getenv("DB_URL")
 	if dbURL == "" {
 		// Menggunakan default local untuk pengembangan (diubah ke 127.0.0.1 biar aman)
-		dbURL = "postgres://dealan:dealan_secret@127.0.0.1:5432/dealan_db?sslmode=disable"
+		dbURL = "postgres://postgres:password@localhost:5432/dealan?sslmode=disable"
 	}
 
 	jwtSecret := os.Getenv("JWT_SECRET")

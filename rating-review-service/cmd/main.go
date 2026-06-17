@@ -21,7 +21,7 @@ func main() {
 	// 1. Inisialisasi Koneksi PostgreSQL via GORM
 	dbURL := os.Getenv("DB_URL")
 	if dbURL == "" {
-		dbURL = "postgres://dealan:dealan_secret@localhost:5432/dealan_db?sslmode=disable"
+		dbURL = "postgres://postgres:password@localhost:5432/dealan?sslmode=disable"
 	}
 
 	db, err := gorm.Open(postgres.Open(dbURL), &gorm.Config{})

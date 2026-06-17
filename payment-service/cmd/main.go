@@ -64,7 +64,7 @@ func main() {
 	dbURL := os.Getenv("DB_URL")
 	if dbURL == "" {
 		// Konfigurasi default (bisa diarahkan ke Supabase / Postgres lokal)
-		dbURL = "postgres://dealan:dealan_secret@localhost:5432/dealan_db?sslmode=disable"
+		dbURL = "postgres://postgres:password@localhost:5432/dealan?sslmode=disable"
 	}
 	log.Printf("Menghubungkan ke database PostgreSQL di: %s\n", dbURL)
 
