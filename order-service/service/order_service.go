@@ -4,8 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"order-service/models"
-	"order-service/repository"
+	"order-service/domain"
 
 	"github.com/segmentio/kafka-go"
 )
@@ -17,17 +16,17 @@ type KafkaProducer interface {
 
 // OrderService mendefinisikan logika bisnis terkait order
 type OrderService interface {
-	CreateOrder(ctx context.Context, order *models.Order) error
+	CreateOrder(ctx context.Context, order *domain.Order) error
 }
 
 type orderService struct {
-	repo          repository.OrderRepository
+	repo          domain.OrderRepository
 	kafkaProducer KafkaProducer
 	kafkaTopic    string
 }
 
 // NewOrderService menginisialisasi order service
-func NewOrderService(repo repository.OrderRepository, kafkaProducer KafkaProducer, kafkaTopic string) OrderService {
+func NewOrderService(repo domain.OrderRepository, kafkaProducer KafkaProducer, kafkaTopic string) OrderService {
 	return &orderService{
 		repo:          repo,
 		kafkaProducer: kafkaProducer,
@@ -36,7 +35,7 @@ func NewOrderService(repo repository.OrderRepository, kafkaProducer KafkaProduce
 }
 
 // CreateOrder membuat order baru dan mengirimkan event ORDER_CREATED ke Kafka
-func (s *orderService) CreateOrder(ctx context.Context, order *models.Order) error {
+func (s *orderService) CreateOrder(ctx context.Context, order *domain.Order) error {
 	// Tetapkan status default
 	order.Status = "PENDING"
 

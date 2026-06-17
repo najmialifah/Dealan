@@ -2,7 +2,7 @@ package repository
 
 import (
 	"context"
-	"location-service/models"
+	"location-service/domain"
 
 	"gorm.io/gorm"
 )
@@ -10,7 +10,7 @@ import (
 // LocationRepository merupakan antarmuka untuk operasi ke database PostgreSQL/PostGIS
 type LocationRepository interface {
 	UpsertLocation(ctx context.Context, driverID uint, lat, lon float64) error
-	FindNearbyDrivers(ctx context.Context, lat, lon float64, radiusMeters float64) ([]models.NearbyDriver, error)
+	FindNearbyDrivers(ctx context.Context, lat, lon float64, radiusMeters float64) ([]domain.NearbyDriver, error)
 }
 
 type locationRepository struct {
@@ -35,8 +35,8 @@ func (r *locationRepository) UpsertLocation(ctx context.Context, driverID uint, 
 }
 
 // FindNearbyDrivers menggunakan fungsi PostGIS ST_DWithin untuk mencari koordinat di dalam radius
-func (r *locationRepository) FindNearbyDrivers(ctx context.Context, lat, lon float64, radiusMeters float64) ([]models.NearbyDriver, error) {
-	var nearbyDrivers []models.NearbyDriver
+func (r *locationRepository) FindNearbyDrivers(ctx context.Context, lat, lon float64, radiusMeters float64) ([]domain.NearbyDriver, error) {
+	var nearbyDrivers []domain.NearbyDriver
 
 	// Query spasial ST_DWithin: menggunakan fungsi geografi agar perhitungan jarak akurat dalam satuan meter
 	// Cast ke geography diperlukan jika kolom tipe dasar geometry tanpa parameter geographic

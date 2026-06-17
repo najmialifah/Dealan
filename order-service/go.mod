@@ -1,9 +1,10 @@
 module order-service
 
-go 1.23.0
+go 1.25.0
 
 require (
 	github.com/gin-gonic/gin v1.12.0
+	github.com/joho/godotenv v1.5.1
 	github.com/segmentio/kafka-go v0.4.51
 	github.com/stretchr/testify v1.11.1
 	go.uber.org/mock v0.6.0

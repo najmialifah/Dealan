@@ -2,7 +2,7 @@ package service
 
 import (
 	"context"
-	"location-service/models"
+	"location-service/domain"
 	"location-service/repository"
 	"log"
 )
@@ -10,7 +10,7 @@ import (
 // LocationService mendefinisikan logika bisnis untuk location-service
 type LocationService interface {
 	UpdateLocation(ctx context.Context, driverID uint, lat, lon float64) error
-	GetNearbyDrivers(ctx context.Context, lat, lon float64, radius float64) ([]models.NearbyDriver, error)
+	GetNearbyDrivers(ctx context.Context, lat, lon float64, radius float64) ([]domain.NearbyDriver, error)
 }
 
 type locationService struct {
@@ -43,7 +43,7 @@ func (s *locationService) UpdateLocation(ctx context.Context, driverID uint, lat
 }
 
 // GetNearbyDrivers mengambil daftar driver yang ada di dalam radius tertentu
-func (s *locationService) GetNearbyDrivers(ctx context.Context, lat, lon float64, radius float64) ([]models.NearbyDriver, error) {
+func (s *locationService) GetNearbyDrivers(ctx context.Context, lat, lon float64, radius float64) ([]domain.NearbyDriver, error) {
 	// Panggil repository untuk query ST_DWithin
 	return s.repo.FindNearbyDrivers(ctx, lat, lon, radius)
 }

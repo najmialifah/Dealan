@@ -4,35 +4,28 @@ import (
 	"context"
 	"crypto/sha256"
 	"encoding/binary"
-	"fmt"
 	"log"
 	"math/rand"
 
-	"map-route-service/models"
-	"map-route-service/repository"
+	"map-route-service/domain"
 )
 
-// MapService menyediakan kontrak fungsional untuk map-route-service.
-type MapService interface {
-	GetOrCreateRoute(ctx context.Context, req models.RouteRequest) (*models.RouteResponse, error)
-}
-
 type mapServiceImpl struct {
-	repo repository.MapRepository
+	repo domain.MapRepository
 }
 
 // NewMapService membuat instansiasi baru layanan MapService.
-func NewMapService(r repository.MapRepository) MapService {
+func NewMapService(r domain.MapRepository) domain.MapService {
 	return &mapServiceImpl{repo: r}
 }
 
 // GetOrCreateRoute mengambil rute tersimpan dari database atau membuat rute mock baru jika belum ada.
-func (s *mapServiceImpl) GetOrCreateRoute(ctx context.Context, req models.RouteRequest) (*models.RouteResponse, error) {
+func (s *mapServiceImpl) GetOrCreateRoute(ctx context.Context, req domain.RouteRequest) (*domain.RouteResponse, error) {
 	// Coba cari rute yang sudah tersimpan di database
 	savedRoute, err := s.repo.GetRoute(ctx, req.Origin, req.Destination)
 	if err == nil && savedRoute != nil {
 		log.Printf("[MapService] Cache hit: Rute ditemukan di database untuk %s -> %s", req.Origin, req.Destination)
-		return &models.RouteResponse{
+		return &domain.RouteResponse{
 			Origin:      savedRoute.Origin,
 			Destination: savedRoute.Destination,
 			Polyline:    savedRoute.Polyline,
@@ -63,7 +56,7 @@ func (s *mapServiceImpl) GetOrCreateRoute(ctx context.Context, req models.RouteR
 	mockPolyline := generateMockPolyline(localRand, int(distance))
 
 	// Simpan rute baru ini ke database
-	newRoute := &models.MapRoute{
+	newRoute := &domain.MapRoute{
 		Origin:      req.Origin,
 		Destination: req.Destination,
 		Polyline:    mockPolyline,
@@ -77,7 +70,7 @@ func (s *mapServiceImpl) GetOrCreateRoute(ctx context.Context, req models.RouteR
 		log.Printf("[MapService] Rute baru berhasil disimpan ke database!")
 	}
 
-	return &models.RouteResponse{
+	return &domain.RouteResponse{
 		Origin:      newRoute.Origin,
 		Destination: newRoute.Destination,
 		Polyline:    newRoute.Polyline,
@@ -102,4 +95,4 @@ func generateMockPolyline(r *rand.Rand, steps int) string {
 	}
 
 	return polyline
-}
+}

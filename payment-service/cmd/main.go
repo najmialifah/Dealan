@@ -12,10 +12,9 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/segmentio/kafka-go"
-	"github.com/shakilaaulia/Dealan/payment-service/controller"
+	deliveryHttp "github.com/shakilaaulia/Dealan/payment-service/delivery/http"
 	"github.com/shakilaaulia/Dealan/payment-service/domain"
 	"github.com/shakilaaulia/Dealan/payment-service/repository"
-	"github.com/shakilaaulia/Dealan/payment-service/routes"
 	"github.com/shakilaaulia/Dealan/payment-service/service"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -57,14 +56,14 @@ func main() {
 	// 1. Baca Konfigurasi Port
 	port := os.Getenv("PORT")
 	if port == "" {
-		port = "8093" // Port default sesuai spesifikasi docker/kubernetes
+		port = "3006" // Sesuai dengan skenario Postman
 	}
 
 	// 2. Koneksi Database PostgreSQL menggunakan GORM
 	dbURL := os.Getenv("DB_URL")
 	if dbURL == "" {
 		// Konfigurasi default (bisa diarahkan ke Supabase / Postgres lokal)
-		dbURL = "postgres://postgres:password@localhost:5432/dealan?sslmode=disable"
+		dbURL = "postgres://postgres:postgres@localhost:5432/dealan?sslmode=disable"
 	}
 	log.Printf("Menghubungkan ke database PostgreSQL di: %s\n", dbURL)
 
@@ -116,7 +115,7 @@ func main() {
 	paymentRepo := repository.NewPaymentRepository(db)
 	kafkaProd := &kafkaProducerImpl{writer: kafkaWriter}
 	paymentService := service.NewPaymentService(paymentRepo, kafkaProd)
-	paymentCtrl := controller.NewPaymentController(paymentService)
+	paymentHandler := deliveryHttp.NewPaymentHandler(paymentService)
 
 	// 6. Setup Gin Engine & Routing
 	gin.SetMode(gin.ReleaseMode)
@@ -124,8 +123,28 @@ func main() {
 	router.Use(gin.Logger())
 	router.Use(gin.Recovery())
 
+	// Menambahkan Middleware CORS
+	router.Use(func(c *gin.Context) {
+		c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
+		c.Writer.Header().Set("Access-Control-Allow-Credentials", "true")
+		c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, accept, origin, Cache-Control, X-Requested-With, X-Idempotency-Key")
+		c.Writer.Header().Set("Access-Control-Allow-Methods", "POST, OPTIONS, GET, PUT, PATCH, DELETE")
+
+		if c.Request.Method == "OPTIONS" {
+			c.AbortWithStatus(204)
+			return
+		}
+		c.Next()
+	})
+
 	// Hubungkan route endpoint
-	routes.SetupRoutes(router, paymentCtrl)
+	api := router.Group("/payments")
+	{
+		api.POST("/create", paymentHandler.Create)
+		api.POST("/webhook", paymentHandler.Webhook)
+		api.GET("/:transaction_id", paymentHandler.GetStatus)
+		api.GET("/driver/:driver_id/wallet", paymentHandler.GetDriverWallet)
+	}
 
 	// Endpoint tambahan untuk health check k8s
 	router.GET("/health", func(c *gin.Context) {

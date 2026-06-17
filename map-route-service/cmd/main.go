@@ -8,10 +8,10 @@ import (
 	"github.com/gin-gonic/gin"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
-	"map-route-service/controller"
-	"map-route-service/models"
+
+	deliveryHttp "map-route-service/delivery/http"
+	"map-route-service/domain"
 	"map-route-service/repository"
-	"map-route-service/routes"
 	"map-route-service/service"
 )
 
@@ -21,7 +21,7 @@ func main() {
 	// 1. Konfigurasi Port
 	port := os.Getenv("PORT")
 	if port == "" {
-		port = "8088" // Menggunakan port 8088 sesuai dengan kode lama
+		port = "3009" // Menggunakan port 3009 sesuai dengan skenario Postman
 	}
 
 	// 2. Hubungkan ke PostgreSQL Database
@@ -47,7 +47,7 @@ func main() {
 	// 3. Auto Migration untuk model MapRoute
 	if db != nil {
 		log.Println("Menjalankan migrasi database Map Route...")
-		err = db.AutoMigrate(&models.MapRoute{})
+		err = db.AutoMigrate(&domain.MapRoute{})
 		if err != nil {
 			log.Fatalf("Gagal melakukan migrasi database: %v", err)
 		}
@@ -58,20 +58,35 @@ func main() {
 	// 4. Inisialisasi Clean Architecture layers
 	mapRepo := repository.NewMapRepository(db)
 	mapSvc := service.NewMapService(mapRepo)
-	mapCtrl := controller.NewMapController(mapSvc)
+	mapHandler := deliveryHttp.NewMapHandler(mapSvc)
 
 	// 5. Setup Gin Router
 	r := gin.Default()
 
-	// Register routes
-	routes.SetupRoutes(r, mapCtrl)
+	// Menambahkan Middleware CORS
+	r.Use(func(c *gin.Context) {
+		c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
+		c.Writer.Header().Set("Access-Control-Allow-Credentials", "true")
+		c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, accept, origin, Cache-Control, X-Requested-With")
+		c.Writer.Header().Set("Access-Control-Allow-Methods", "POST, OPTIONS, GET, PUT, PATCH, DELETE")
+
+		if c.Request.Method == "OPTIONS" {
+			c.AbortWithStatus(204)
+			return
+		}
+		c.Next()
+	})
 
 	// Health check endpoint
 	r.GET("/health", func(c *gin.Context) {
 		c.JSON(200, gin.H{"status": "UP", "service": "map-route-service"})
 	})
 
-	log.Printf("Map Route Service berjalan di port %s", port)
+	// Register routes
+	r.POST("/route", mapHandler.GetRoute)
+	r.GET("/route", mapHandler.GetRoute)
+
+	log.Printf("Map Route Service berjalan di port :%s", port)
 	if err := r.Run(":" + port); err != nil {
 		log.Fatalf("Gagal menjalankan server HTTP: %v", err)
 	}
