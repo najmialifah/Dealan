@@ -2,7 +2,8 @@ package service
 
 import (
 	"context"
-	"github.com/shakilaaulia/Dealan/punishment-service/domain"
+
+	"github.com/najmialifah/Dealan/punishment-service/domain"
 )
 
 type PunishmentService interface {

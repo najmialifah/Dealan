@@ -4,8 +4,8 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/shakilaaulia/Dealan/driver-service/domain"
-	"github.com/shakilaaulia/Dealan/driver-service/service"
+	"github.com/najmialifah/Dealan/driver-service/domain"
+	"github.com/najmialifah/Dealan/driver-service/service"
 )
 
 // DriverHandler adalah controller REST API untuk driver-service menggunakan Gin

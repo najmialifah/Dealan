@@ -4,8 +4,8 @@ import (
 	"context"
 	"errors"
 
-	"github.com/shakilaaulia/Dealan/driver-service/domain"
-	"github.com/shakilaaulia/Dealan/driver-service/repository"
+	"github.com/najmialifah/Dealan/driver-service/domain"
+	"github.com/najmialifah/Dealan/driver-service/repository"
 )
 
 type driverService struct {

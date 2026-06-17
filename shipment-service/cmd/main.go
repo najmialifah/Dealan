@@ -7,11 +7,11 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/shakilaaulia/Dealan/shipment-service/controller"
-	"github.com/shakilaaulia/Dealan/shipment-service/domain"
-	"github.com/shakilaaulia/Dealan/shipment-service/repository"
-	"github.com/shakilaaulia/Dealan/shipment-service/routes"
-	"github.com/shakilaaulia/Dealan/shipment-service/service"
+	"github.com/najmialifah/Dealan/shipment-service/controller"
+	"github.com/najmialifah/Dealan/shipment-service/domain"
+	"github.com/najmialifah/Dealan/shipment-service/repository"
+	"github.com/najmialifah/Dealan/shipment-service/routes"
+	"github.com/najmialifah/Dealan/shipment-service/service"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )

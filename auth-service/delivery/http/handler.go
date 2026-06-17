@@ -5,8 +5,8 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
-	"github.com/shakilaaulia/Dealan/auth-service/domain"
-	"github.com/shakilaaulia/Dealan/auth-service/service"
+	"github.com/najmialifah/Dealan/auth-service/domain"
+	"github.com/najmialifah/Dealan/auth-service/service"
 )
 
 // AuthHandler adalah controller untuk REST API Autentikasi menggunakan Gin

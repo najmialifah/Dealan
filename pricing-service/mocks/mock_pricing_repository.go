@@ -13,7 +13,7 @@ import (
 	context "context"
 	reflect "reflect"
 
-	domain "github.com/shakilaaulia/Dealan/pricing-service/domain"
+	domain "github.com/najmialifah/Dealan/pricing-service/domain"
 	gomock "go.uber.org/mock/gomock"
 )
 

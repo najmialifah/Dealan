@@ -3,7 +3,7 @@ package repository
 import (
 	"context"
 
-	"github.com/shakilaaulia/Dealan/payment-service/domain"
+	"github.com/najmialifah/Dealan/payment-service/domain"
 	"gorm.io/gorm"
 )
 

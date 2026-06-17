@@ -5,8 +5,8 @@ import (
 	"encoding/json"
 	"log"
 
+	"github.com/najmialifah/Dealan/user-service/service"
 	"github.com/segmentio/kafka-go"
-	"github.com/shakilaaulia/Dealan/user-service/service"
 )
 
 // UserCreatedEvent merepresentasikan payload event Kafka yang diterima

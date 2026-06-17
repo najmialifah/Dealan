@@ -4,8 +4,8 @@ import (
 	"context"
 	"errors"
 
-	"github.com/shakilaaulia/Dealan/punishment-service/domain"
-	"github.com/shakilaaulia/Dealan/punishment-service/repository"
+	"github.com/najmialifah/Dealan/punishment-service/domain"
+	"github.com/najmialifah/Dealan/punishment-service/repository"
 )
 
 type punishmentService struct {

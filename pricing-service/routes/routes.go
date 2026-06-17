@@ -2,7 +2,7 @@ package routes
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/shakilaaulia/Dealan/pricing-service/controller"
+	"github.com/najmialifah/Dealan/pricing-service/controller"
 )
 
 // SetupRoutes mendefinisikan seluruh mapping URI endpoint HTTP untuk pricing-service.

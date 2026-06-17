@@ -3,7 +3,7 @@ package service
 import (
 	"context"
 
-	"github.com/shakilaaulia/Dealan/driver-service/domain"
+	"github.com/najmialifah/Dealan/driver-service/domain"
 )
 
 // DriverService mendefinisikan interface bisnis untuk driver-service

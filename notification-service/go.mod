@@ -1,4 +1,4 @@
-module github.com/shakilaaulia/Dealan/notification-service
+module github.com/najmialifah/Dealan/notification-service
 
 go 1.25.0
 

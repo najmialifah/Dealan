@@ -4,8 +4,8 @@ import (
 	"context"
 	"errors"
 
-	"github.com/shakilaaulia/Dealan/rating-review-service/domain"
-	"github.com/shakilaaulia/Dealan/rating-review-service/repository"
+	"github.com/najmialifah/Dealan/rating-review-service/domain"
+	"github.com/najmialifah/Dealan/rating-review-service/repository"
 )
 
 type ratingService struct {

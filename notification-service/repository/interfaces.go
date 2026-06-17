@@ -2,7 +2,8 @@ package repository
 
 import (
 	"context"
-	"github.com/shakilaaulia/Dealan/notification-service/domain"
+
+	"github.com/najmialifah/Dealan/notification-service/domain"
 )
 
 // NotificationRepository adalah interface (kontrak) untuk bagian database.

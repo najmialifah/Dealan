@@ -7,11 +7,11 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
-	deliveryHttp "github.com/shakilaaulia/Dealan/user-service/delivery/http"
-	"github.com/shakilaaulia/Dealan/user-service/domain"
-	"github.com/shakilaaulia/Dealan/user-service/pkg/kafka"
-	"github.com/shakilaaulia/Dealan/user-service/repository"
-	"github.com/shakilaaulia/Dealan/user-service/service"
+	deliveryHttp "github.com/najmialifah/Dealan/user-service/delivery/http"
+	"github.com/najmialifah/Dealan/user-service/domain"
+	"github.com/najmialifah/Dealan/user-service/pkg/kafka"
+	"github.com/najmialifah/Dealan/user-service/repository"
+	"github.com/najmialifah/Dealan/user-service/service"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )

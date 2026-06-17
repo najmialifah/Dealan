@@ -3,7 +3,7 @@ package repository
 import (
 	"context"
 
-	"github.com/shakilaaulia/Dealan/driver-service/domain"
+	"github.com/najmialifah/Dealan/driver-service/domain"
 )
 
 // DriverRepository mendefinisikan interface database untuk driver-service menggunakan GORM

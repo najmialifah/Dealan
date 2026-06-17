@@ -9,11 +9,11 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv" // Tambahan: Import package buat baca file .env
 
-	deliveryHttp "github.com/shakilaaulia/Dealan/auth-service/delivery/http"
-	"github.com/shakilaaulia/Dealan/auth-service/domain"
-	"github.com/shakilaaulia/Dealan/auth-service/pkg/kafka"
-	"github.com/shakilaaulia/Dealan/auth-service/repository"
-	"github.com/shakilaaulia/Dealan/auth-service/service"
+	deliveryHttp "github.com/najmialifah/Dealan/auth-service/delivery/http"
+	"github.com/najmialifah/Dealan/auth-service/domain"
+	"github.com/najmialifah/Dealan/auth-service/pkg/kafka"
+	"github.com/najmialifah/Dealan/auth-service/repository"
+	"github.com/najmialifah/Dealan/auth-service/service"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )

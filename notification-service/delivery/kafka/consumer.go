@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/shakilaaulia/Dealan/notification-service/domain"
-	"github.com/shakilaaulia/Dealan/notification-service/service"
+	"github.com/najmialifah/Dealan/notification-service/domain"
+	"github.com/najmialifah/Dealan/notification-service/service"
 	kafkaGo "github.com/segmentio/kafka-go"
 )
 

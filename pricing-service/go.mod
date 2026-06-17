@@ -1,4 +1,4 @@
-module github.com/shakilaaulia/Dealan/pricing-service
+module github.com/najmialifah/Dealan/pricing-service
 
 go 1.26.2
 

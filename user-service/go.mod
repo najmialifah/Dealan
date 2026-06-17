@@ -1,4 +1,4 @@
-module github.com/shakilaaulia/Dealan/user-service
+module github.com/najmialifah/Dealan/user-service
 
 go 1.25.0
 

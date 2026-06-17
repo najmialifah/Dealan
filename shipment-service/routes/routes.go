@@ -2,7 +2,7 @@ package routes
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/shakilaaulia/Dealan/shipment-service/controller"
+	"github.com/najmialifah/Dealan/shipment-service/controller"
 )
 
 // SetupRoutes mendaftarkan endpoint Gin Gonic untuk Shipment Service.

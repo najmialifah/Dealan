@@ -3,9 +3,9 @@ package http
 import (
 	"net/http"
 
-	"github.com/shakilaaulia/Dealan/notification-service/domain"
-	"github.com/shakilaaulia/Dealan/notification-service/service"
 	"github.com/gin-gonic/gin"
+	"github.com/najmialifah/Dealan/notification-service/domain"
+	"github.com/najmialifah/Dealan/notification-service/service"
 )
 
 type NotificationHandler struct {

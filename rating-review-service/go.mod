@@ -1,4 +1,4 @@
-module github.com/shakilaaulia/Dealan/rating-review-service
+module github.com/najmialifah/Dealan/rating-review-service
 
 go 1.25.0
 

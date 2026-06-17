@@ -9,8 +9,8 @@ import (
 	"testing"
 
 	"github.com/gin-gonic/gin"
-	"github.com/shakilaaulia/Dealan/shipment-service/controller"
-	"github.com/shakilaaulia/Dealan/shipment-service/domain"
+	"github.com/najmialifah/Dealan/shipment-service/controller"
+	"github.com/najmialifah/Dealan/shipment-service/domain"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )

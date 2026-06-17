@@ -4,8 +4,8 @@ import (
 	"context"
 	"encoding/json"
 
+	"github.com/najmialifah/Dealan/auth-service/service"
 	"github.com/segmentio/kafka-go"
-	"github.com/shakilaaulia/Dealan/auth-service/service"
 )
 
 type kafkaProducer struct {

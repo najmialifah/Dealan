@@ -1,4 +1,4 @@
-module github.com/shakilaaulia/Dealan/shipment-service
+module github.com/najmialifah/Dealan/shipment-service
 
 go 1.26.2
 

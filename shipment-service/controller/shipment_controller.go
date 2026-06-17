@@ -5,8 +5,8 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/shakilaaulia/Dealan/shipment-service/domain"
-	"github.com/shakilaaulia/Dealan/shipment-service/service"
+	"github.com/najmialifah/Dealan/shipment-service/domain"
+	"github.com/najmialifah/Dealan/shipment-service/service"
 	"gorm.io/gorm"
 )
 

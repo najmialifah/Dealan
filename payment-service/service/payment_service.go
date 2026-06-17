@@ -9,8 +9,8 @@ import (
 	"math/rand"
 	"time"
 
-	"github.com/shakilaaulia/Dealan/payment-service/domain"
-	"github.com/shakilaaulia/Dealan/payment-service/repository"
+	"github.com/najmialifah/Dealan/payment-service/domain"
+	"github.com/najmialifah/Dealan/payment-service/repository"
 	"gorm.io/gorm"
 )
 

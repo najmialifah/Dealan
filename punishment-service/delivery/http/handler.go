@@ -4,8 +4,8 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/shakilaaulia/Dealan/punishment-service/domain"
-	"github.com/shakilaaulia/Dealan/punishment-service/service"
+	"github.com/najmialifah/Dealan/punishment-service/domain"
+	"github.com/najmialifah/Dealan/punishment-service/service"
 )
 
 type PunishmentHandler struct {

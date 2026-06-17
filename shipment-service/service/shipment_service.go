@@ -7,8 +7,8 @@ import (
 	"math/rand"
 	"time"
 
-	"github.com/shakilaaulia/Dealan/shipment-service/domain"
-	"github.com/shakilaaulia/Dealan/shipment-service/repository"
+	"github.com/najmialifah/Dealan/shipment-service/domain"
+	"github.com/najmialifah/Dealan/shipment-service/repository"
 )
 
 // ShipmentService mendefinisikan interface bisnis untuk operasi CRUD dan pelacakan pengiriman.

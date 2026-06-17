@@ -6,9 +6,9 @@ import (
 	"testing"
 
 	"github.com/glebarez/sqlite"
-	"github.com/shakilaaulia/Dealan/payment-service/domain"
-	"github.com/shakilaaulia/Dealan/payment-service/repository"
-	"github.com/shakilaaulia/Dealan/payment-service/service"
+	"github.com/najmialifah/Dealan/payment-service/domain"
+	"github.com/najmialifah/Dealan/payment-service/repository"
+	"github.com/najmialifah/Dealan/payment-service/service"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"gorm.io/gorm"

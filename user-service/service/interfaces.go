@@ -3,7 +3,7 @@ package service
 import (
 	"context"
 
-	"github.com/shakilaaulia/Dealan/user-service/domain"
+	"github.com/najmialifah/Dealan/user-service/domain"
 )
 
 // UserService mendefinisikan interface bisnis untuk user-service

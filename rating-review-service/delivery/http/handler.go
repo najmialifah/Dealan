@@ -4,8 +4,8 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/shakilaaulia/Dealan/rating-review-service/domain"
-	"github.com/shakilaaulia/Dealan/rating-review-service/service"
+	"github.com/najmialifah/Dealan/rating-review-service/domain"
+	"github.com/najmialifah/Dealan/rating-review-service/service"
 )
 
 type RatingHandler struct {

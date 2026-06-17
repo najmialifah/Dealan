@@ -6,8 +6,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/shakilaaulia/Dealan/auth-service/domain"
-	"github.com/shakilaaulia/Dealan/auth-service/service"
+	"github.com/najmialifah/Dealan/auth-service/domain"
+	"github.com/najmialifah/Dealan/auth-service/service"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"golang.org/x/crypto/bcrypt"

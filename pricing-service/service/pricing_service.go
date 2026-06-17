@@ -6,8 +6,8 @@ import (
 	"log"
 	"math"
 
-	"github.com/shakilaaulia/Dealan/pricing-service/models"
-	"github.com/shakilaaulia/Dealan/pricing-service/repository"
+	"github.com/najmialifah/Dealan/pricing-service/models"
+	"github.com/najmialifah/Dealan/pricing-service/repository"
 )
 
 // PricingService mendefinisikan kontrak fungsi layanan kalkulasi harga dan negosiasi.

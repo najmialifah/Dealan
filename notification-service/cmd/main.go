@@ -10,10 +10,10 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	deliveryHttp "github.com/shakilaaulia/Dealan/notification-service/delivery/http"
-	deliveryKafka "github.com/shakilaaulia/Dealan/notification-service/delivery/kafka"
-	"github.com/shakilaaulia/Dealan/notification-service/repository"
-	"github.com/shakilaaulia/Dealan/notification-service/service"
+	deliveryHttp "github.com/najmialifah/Dealan/notification-service/delivery/http"
+	deliveryKafka "github.com/najmialifah/Dealan/notification-service/delivery/kafka"
+	"github.com/najmialifah/Dealan/notification-service/repository"
+	"github.com/najmialifah/Dealan/notification-service/service"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
@@ -23,7 +23,7 @@ func main() {
 	dbURL := os.Getenv("DB_URL")
 	if dbURL == "" {
 		// Menggunakan URL default lokal jika env var kosong
-		dbURL = "postgres://dealan:dealan_secret@localhost:5432/dealan_db?sslmode=disable"
+		dbURL = "postgres://postgres:password@127.0.0.1:5433/dealan?sslmode=disable"
 	}
 
 	db, err := gorm.Open(postgres.Open(dbURL), &gorm.Config{})

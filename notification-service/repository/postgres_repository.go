@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/shakilaaulia/Dealan/notification-service/domain"
+	"github.com/najmialifah/Dealan/notification-service/domain"
 	"gorm.io/gorm"
 )
 

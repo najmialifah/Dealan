@@ -4,9 +4,9 @@ import (
 	"context"
 	"testing"
 
-	"github.com/shakilaaulia/Dealan/punishment-service/domain"
-	"github.com/shakilaaulia/Dealan/punishment-service/mocks"
-	"github.com/shakilaaulia/Dealan/punishment-service/service"
+	"github.com/najmialifah/Dealan/punishment-service/domain"
+	"github.com/najmialifah/Dealan/punishment-service/mocks"
+	"github.com/najmialifah/Dealan/punishment-service/service"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"
 )

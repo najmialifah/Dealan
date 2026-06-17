@@ -4,9 +4,9 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/shakilaaulia/Dealan/pricing-service/models"
-	"github.com/shakilaaulia/Dealan/pricing-service/repository"
-	"github.com/shakilaaulia/Dealan/pricing-service/service"
+	"github.com/najmialifah/Dealan/pricing-service/models"
+	"github.com/najmialifah/Dealan/pricing-service/repository"
+	"github.com/najmialifah/Dealan/pricing-service/service"
 )
 
 // PricingController menangani request HTTP untuk kalkulasi harga dan negosiasi.

@@ -7,8 +7,8 @@ import (
 
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
-	"github.com/shakilaaulia/Dealan/auth-service/domain"
-	"github.com/shakilaaulia/Dealan/auth-service/repository"
+	"github.com/najmialifah/Dealan/auth-service/domain"
+	"github.com/najmialifah/Dealan/auth-service/repository"
 	"golang.org/x/crypto/bcrypt"
 )
 

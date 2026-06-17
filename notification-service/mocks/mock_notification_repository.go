@@ -11,8 +11,9 @@ package mocks
 
 import (
 	context "context"
-	domain "github.com/shakilaaulia/Dealan/notification-service/domain"
 	reflect "reflect"
+
+	domain "github.com/najmialifah/Dealan/notification-service/domain"
 
 	gomock "go.uber.org/mock/gomock"
 )

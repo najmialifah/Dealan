@@ -1,4 +1,4 @@
-module github.com/shakilaaulia/Dealan/payment-service
+module github.com/najmialifah/Dealan/payment-service
 
 go 1.26.2
 

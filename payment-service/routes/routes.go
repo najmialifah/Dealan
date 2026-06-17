@@ -2,7 +2,7 @@ package routes
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/shakilaaulia/Dealan/payment-service/controller"
+	"github.com/najmialifah/Dealan/payment-service/controller"
 )
 
 // SetupRoutes mendefinisikan seluruh endpoint HTTP untuk Payment Service menggunakan Gin Gonic.

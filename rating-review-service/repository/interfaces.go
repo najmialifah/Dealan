@@ -2,7 +2,8 @@ package repository
 
 import (
 	"context"
-	"github.com/shakilaaulia/Dealan/rating-review-service/domain"
+
+	"github.com/najmialifah/Dealan/rating-review-service/domain"
 )
 
 //go:generate mockgen -source=interfaces.go -destination=../mocks/mock_rating_repository.go -package=mocks

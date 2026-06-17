@@ -4,8 +4,8 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/shakilaaulia/Dealan/user-service/domain"
-	"github.com/shakilaaulia/Dealan/user-service/service"
+	"github.com/najmialifah/Dealan/user-service/domain"
+	"github.com/najmialifah/Dealan/user-service/service"
 )
 
 // UserHandler adalah controller REST API untuk user-service menggunakan Gin

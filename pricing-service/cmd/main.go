@@ -2,18 +2,17 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"os"
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/najmialifah/Dealan/pricing-service/controller"
+	"github.com/najmialifah/Dealan/pricing-service/models"
+	"github.com/najmialifah/Dealan/pricing-service/repository"
+	"github.com/najmialifah/Dealan/pricing-service/routes"
+	"github.com/najmialifah/Dealan/pricing-service/service"
 	"github.com/segmentio/kafka-go"
-	"github.com/shakilaaulia/Dealan/pricing-service/controller"
-	"github.com/shakilaaulia/Dealan/pricing-service/models"
-	"github.com/shakilaaulia/Dealan/pricing-service/repository"
-	"github.com/shakilaaulia/Dealan/pricing-service/routes"
-	"github.com/shakilaaulia/Dealan/pricing-service/service"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )

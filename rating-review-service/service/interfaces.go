@@ -2,7 +2,8 @@ package service
 
 import (
 	"context"
-	"github.com/shakilaaulia/Dealan/rating-review-service/domain"
+
+	"github.com/najmialifah/Dealan/rating-review-service/domain"
 )
 
 // RatingService mendefinisikan kontrak logika bisnis untuk Rating & Review

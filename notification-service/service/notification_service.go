@@ -6,8 +6,8 @@ import (
 	"math/rand"
 	"time"
 
-	"github.com/shakilaaulia/Dealan/notification-service/domain"
-	"github.com/shakilaaulia/Dealan/notification-service/repository"
+	"github.com/najmialifah/Dealan/notification-service/domain"
+	"github.com/najmialifah/Dealan/notification-service/repository"
 )
 
 type notificationService struct {

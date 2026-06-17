@@ -5,8 +5,8 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/shakilaaulia/Dealan/user-service/domain"
-	"github.com/shakilaaulia/Dealan/user-service/service"
+	"github.com/najmialifah/Dealan/user-service/domain"
+	"github.com/najmialifah/Dealan/user-service/service"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )

@@ -3,7 +3,7 @@ package service
 import (
 	"context"
 
-	"github.com/shakilaaulia/Dealan/auth-service/domain"
+	"github.com/najmialifah/Dealan/auth-service/domain"
 )
 
 // AuthService mendefinisikan interface bisnis untuk layanan autentikasi

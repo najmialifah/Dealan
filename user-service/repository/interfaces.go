@@ -3,7 +3,7 @@ package repository
 import (
 	"context"
 
-	"github.com/shakilaaulia/Dealan/user-service/domain"
+	"github.com/najmialifah/Dealan/user-service/domain"
 )
 
 // UserRepository mendefinisikan kontrak akses data GORM untuk user-service

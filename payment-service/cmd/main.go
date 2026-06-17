@@ -11,12 +11,12 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/najmialifah/Dealan/payment-service/controller"
+	"github.com/najmialifah/Dealan/payment-service/domain"
+	"github.com/najmialifah/Dealan/payment-service/repository"
+	"github.com/najmialifah/Dealan/payment-service/routes"
+	"github.com/najmialifah/Dealan/payment-service/service"
 	"github.com/segmentio/kafka-go"
-	"github.com/shakilaaulia/Dealan/payment-service/controller"
-	"github.com/shakilaaulia/Dealan/payment-service/domain"
-	"github.com/shakilaaulia/Dealan/payment-service/repository"
-	"github.com/shakilaaulia/Dealan/payment-service/routes"
-	"github.com/shakilaaulia/Dealan/payment-service/service"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )

@@ -1,4 +1,4 @@
-module github.com/shakilaaulia/Dealan/driver-service
+module github.com/najmialifah/Dealan/driver-service
 
 go 1.25.0
 

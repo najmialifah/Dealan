@@ -5,7 +5,7 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/shakilaaulia/Dealan/pricing-service/models"
+	"github.com/najmialifah/Dealan/pricing-service/models"
 	"github.com/stretchr/testify/assert"
 )
 

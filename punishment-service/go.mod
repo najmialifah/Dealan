@@ -1,4 +1,4 @@
-module github.com/shakilaaulia/Dealan/punishment-service
+module github.com/najmialifah/Dealan/punishment-service
 
 go 1.25.0
 

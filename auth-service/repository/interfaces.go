@@ -3,7 +3,7 @@ package repository
 import (
 	"context"
 
-	"github.com/shakilaaulia/Dealan/auth-service/domain"
+	"github.com/najmialifah/Dealan/auth-service/domain"
 )
 
 // AuthRepository mendefinisikan interface untuk interaksi data auth di PostgreSQL menggunakan GORM

@@ -10,9 +10,9 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	deliveryHttp "github.com/shakilaaulia/Dealan/rating-review-service/delivery/http"
-	"github.com/shakilaaulia/Dealan/rating-review-service/repository"
-	"github.com/shakilaaulia/Dealan/rating-review-service/service"
+	deliveryHttp "github.com/najmialifah/Dealan/rating-review-service/delivery/http"
+	"github.com/najmialifah/Dealan/rating-review-service/repository"
+	"github.com/najmialifah/Dealan/rating-review-service/service"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )

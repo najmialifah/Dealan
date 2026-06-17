@@ -4,8 +4,8 @@ import (
 	"context"
 	"errors"
 
-	"github.com/shakilaaulia/Dealan/user-service/domain"
-	"github.com/shakilaaulia/Dealan/user-service/repository"
+	"github.com/najmialifah/Dealan/user-service/domain"
+	"github.com/najmialifah/Dealan/user-service/repository"
 )
 
 type userService struct {
