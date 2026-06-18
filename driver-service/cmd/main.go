@@ -44,6 +44,36 @@ func main() {
 		log.Fatalf("Gagal melakukan migrasi database: %v", err)
 	}
 
+	// Setup PostGIS dan sinkronisasi kolom lokasi
+	log.Println("Menyiapkan ekstensi PostGIS dan kolom lokasi...")
+	db.Exec("CREATE EXTENSION IF NOT EXISTS postgis;")
+	db.Exec("ALTER TABLE driver_status ADD COLUMN IF NOT EXISTS lokasi GEOGRAPHY(Point, 4326);")
+	db.Exec("CREATE INDEX IF NOT EXISTS idx_driver_lokasi ON driver_status USING GIST(lokasi);")
+
+	// Trigger untuk sinkronisasi kolom lokasi otomatis dari lat dan long
+	triggerSQL := `
+	CREATE OR REPLACE FUNCTION update_driver_status_lokasi()
+	RETURNS TRIGGER AS $$
+	BEGIN
+		IF NEW.lat IS NOT NULL AND NEW.long IS NOT NULL THEN
+			NEW.lokasi := ST_SetSRID(ST_MakePoint(NEW.long, NEW.lat), 4326)::geography;
+		END IF;
+		RETURN NEW;
+	END;
+	$$ LANGUAGE plpgsql;
+
+	DROP TRIGGER IF EXISTS trigger_update_driver_status_lokasi ON driver_status;
+	CREATE TRIGGER trigger_update_driver_status_lokasi
+	BEFORE INSERT OR UPDATE OF lat, long ON driver_status
+	FOR EACH ROW
+	EXECUTE FUNCTION update_driver_status_lokasi();
+	`
+	if err := db.Exec(triggerSQL).Error; err != nil {
+		log.Printf("[Warning] Gagal membuat trigger sinkronisasi lokasi: %v", err)
+	} else {
+		log.Println("[Info] Trigger sinkronisasi lokasi berhasil didaftarkan")
+	}
+
 	// 3. Inisialisasi Repository dan Service
 	repo := repository.NewPostgresDriverRepository(db)
 	driverSvc := service.NewDriverService(repo)

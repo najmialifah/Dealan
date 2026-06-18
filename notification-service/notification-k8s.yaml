@@ -16,9 +16,15 @@ spec:
     spec:
       containers:
       - name: notification-service
-        image: kelompokdealan/notification-service:latest
+        image: dealanregistry.azurecr.io/dealan-notification-service:latest
+        env:
+        - name: PORT
+          value: "3011"
+        envFrom:
+        - configMapRef:
+            name: dealan-config
         ports:
-        - containerPort: 8084
+        - containerPort: 3011
 ---
 apiVersion: v1
 kind: Service
@@ -30,5 +36,7 @@ spec:
   ports:
     - protocol: TCP
       port: 8084
-      targetPort: 8084
+      targetPort: 3011
   type: ClusterIP
+
+

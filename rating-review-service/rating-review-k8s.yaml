@@ -16,9 +16,15 @@ spec:
     spec:
       containers:
       - name: rating-review-service
-        image: kelompokdealan/rating-review-service:latest
+        image: dealanregistry.azurecr.io/dealan-rating-review-service:latest
+        env:
+        - name: PORT
+          value: "3012"
+        envFrom:
+        - configMapRef:
+            name: dealan-config
         ports:
-        - containerPort: 8085
+        - containerPort: 3012
 ---
 apiVersion: v1
 kind: Service
@@ -30,5 +36,7 @@ spec:
   ports:
     - protocol: TCP
       port: 8085
-      targetPort: 8085
+      targetPort: 3012
   type: ClusterIP
+
+

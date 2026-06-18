@@ -16,10 +16,16 @@ spec:
     spec:
       containers:
       - name: user-container
-        image: kelompokdealan/user-service:latest # Menembak ke repositori user-service di Docker Hub bersama
+        image: dealanregistry.azurecr.io/dealan-user-service:latest # Menembak ke repositori user-service di Docker Hub bersama
         imagePullPolicy: Always
+        env:
+        - name: PORT
+          value: "3002"
+        envFrom:
+        - configMapRef:
+            name: dealan-config
         ports:
-        - containerPort: 8082 # Port internal aplikasi User Service
+        - containerPort: 3002 # Port internal aplikasi User Service
 ---
 apiVersion: v1
 kind: Service
@@ -32,4 +38,5 @@ spec:
   ports:
   - protocol: TCP
     port: 8082
-    targetPort: 8082
+    targetPort: 3002
+

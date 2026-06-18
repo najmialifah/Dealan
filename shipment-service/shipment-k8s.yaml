@@ -16,10 +16,16 @@ spec:
     spec:
       containers:
       - name: shipment-container
-        image: kelompokdealan/shipment-service:latest
+        image: dealanregistry.azurecr.io/dealan-shipment-service:latest
         imagePullPolicy: Always
+        env:
+        - name: PORT
+          value: "3007"
+        envFrom:
+        - configMapRef:
+            name: dealan-config
         ports:
-        - containerPort: 8094
+        - containerPort: 3007
 ---
 apiVersion: v1
 kind: Service
@@ -31,5 +37,6 @@ spec:
   ports:
     - protocol: TCP
       port: 80
-      targetPort: 8094
+      targetPort: 3007
   type: ClusterIP
+

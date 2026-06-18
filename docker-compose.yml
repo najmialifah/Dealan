@@ -19,7 +19,18 @@ services:
       - dealan_net
 
   # ------------------------------------
-  # 2. Message Broker (Zookeeper + Kafka)
+  # 2. Cache (Redis)
+  # ------------------------------------
+  redis:
+    image: redis:7-alpine
+    container_name: dealan_redis
+    ports:
+      - "6379:6379"
+    networks:
+      - dealan_net
+
+  # ------------------------------------
+  # 3. Message Broker (Zookeeper + Kafka)
   # ------------------------------------
   zookeeper:
     image: confluentinc/cp-zookeeper:7.4.0
@@ -50,7 +61,7 @@ services:
       - dealan_net
 
   # ------------------------------------
-  # 3. API Gateway (Kong DB-less)
+  # 4. API Gateway (Kong DB-less)
   # ------------------------------------
   kong:
     image: kong:3.4-ubuntu
@@ -74,15 +85,12 @@ services:
       - dealan_net
 
   # ------------------------------------
-  # 4. Microservices (Sample for Local E2E)
+  # 5. Microservices
   # ------------------------------------
   auth-service:
-    image: golang:1.23-alpine
+    build: ./auth-service
+    image: dealan-auth-service:latest
     container_name: dealan_auth_service
-    working_dir: /app
-    volumes:
-      - ./auth-service:/app
-    command: sh -c "go mod download && go run cmd/main.go"
     ports:
       - "3001:3001"
     environment:
@@ -93,6 +101,55 @@ services:
       - DB_PORT=5432
       - PORT=3001
       - KAFKA_BROKER=kafka:29092
+      - KAFKA_BROKERS=kafka:29092
+      - DB_URL=host=postgres user=postgres password=password dbname=dealan port=5432 sslmode=disable
+      - DATABASE_URL=host=postgres user=postgres password=password dbname=dealan port=5432 sslmode=disable
+    depends_on:
+      - postgres
+      - kafka
+    networks:
+      - dealan_net
+
+  user-service:
+    build: ./user-service
+    image: dealan-user-service:latest
+    container_name: dealan_user_service
+    ports:
+      - "3002:3002"
+    environment:
+      - DB_HOST=postgres
+      - DB_USER=postgres
+      - DB_PASSWORD=password
+      - DB_NAME=dealan
+      - DB_PORT=5432
+      - PORT=3002
+      - KAFKA_BROKER=kafka:29092
+      - KAFKA_BROKERS=kafka:29092
+      - DB_URL=host=postgres user=postgres password=password dbname=dealan port=5432 sslmode=disable
+      - DATABASE_URL=host=postgres user=postgres password=password dbname=dealan port=5432 sslmode=disable
+    depends_on:
+      - postgres
+      - kafka
+    networks:
+      - dealan_net
+
+  driver-service:
+    build: ./driver-service
+    image: dealan-driver-service:latest
+    container_name: dealan_driver_service
+    ports:
+      - "3003:3003"
+    environment:
+      - DB_HOST=postgres
+      - DB_USER=postgres
+      - DB_PASSWORD=password
+      - DB_NAME=dealan
+      - DB_PORT=5432
+      - PORT=3003
+      - KAFKA_BROKER=kafka:29092
+      - KAFKA_BROKERS=kafka:29092
+      - DB_URL=host=postgres user=postgres password=password dbname=dealan port=5432 sslmode=disable
+      - DATABASE_URL=host=postgres user=postgres password=password dbname=dealan port=5432 sslmode=disable
     depends_on:
       - postgres
       - kafka
@@ -100,12 +157,9 @@ services:
       - dealan_net
 
   order-service:
-    image: golang:1.23-alpine
+    build: ./order-service
+    image: dealan-order-service:latest
     container_name: dealan_order_service
-    working_dir: /app
-    volumes:
-      - ./order-service:/app
-    command: sh -c "go mod download && go run cmd/main.go"
     ports:
       - "3004:3004"
     environment:
@@ -116,6 +170,128 @@ services:
       - DB_PORT=5432
       - PORT=3004
       - KAFKA_BROKER=kafka:29092
+      - KAFKA_BROKERS=kafka:29092
+      - DB_URL=host=postgres user=postgres password=password dbname=dealan port=5432 sslmode=disable
+      - DATABASE_URL=host=postgres user=postgres password=password dbname=dealan port=5432 sslmode=disable
+    depends_on:
+      - postgres
+      - kafka
+    networks:
+      - dealan_net
+
+  matching-service:
+    build: ./matching-service
+    image: dealan-matching-service:latest
+    container_name: dealan_matching_service
+    ports:
+      - "3005:3005"
+    environment:
+      - DB_HOST=postgres
+      - DB_USER=postgres
+      - DB_PASSWORD=password
+      - DB_NAME=dealan
+      - DB_PORT=5432
+      - PORT=3005
+      - KAFKA_BROKER=kafka:29092
+      - KAFKA_BROKERS=kafka:29092
+      - REDIS_URL=redis://redis:6379
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - DB_URL=host=postgres user=postgres password=password dbname=dealan port=5432 sslmode=disable
+      - DATABASE_URL=host=postgres user=postgres password=password dbname=dealan port=5432 sslmode=disable
+    depends_on:
+      - postgres
+      - kafka
+      - redis
+    networks:
+      - dealan_net
+
+  pricing-service:
+    build: ./pricing-service
+    image: dealan-pricing-service:latest
+    container_name: dealan_pricing_service
+    ports:
+      - "3006:3006"
+    environment:
+      - DB_HOST=postgres
+      - DB_USER=postgres
+      - DB_PASSWORD=password
+      - DB_NAME=dealan
+      - DB_PORT=5432
+      - PORT=3006
+      - KAFKA_BROKER=kafka:29092
+      - KAFKA_BROKERS=kafka:29092
+      - DB_URL=host=postgres user=postgres password=password dbname=dealan port=5432 sslmode=disable
+      - DATABASE_URL=host=postgres user=postgres password=password dbname=dealan port=5432 sslmode=disable
+    depends_on:
+      - postgres
+      - kafka
+    networks:
+      - dealan_net
+
+  shipment-service:
+    build: ./shipment-service
+    image: dealan-shipment-service:latest
+    container_name: dealan_shipment_service
+    ports:
+      - "3007:3007"
+    environment:
+      - DB_HOST=postgres
+      - DB_USER=postgres
+      - DB_PASSWORD=password
+      - DB_NAME=dealan
+      - DB_PORT=5432
+      - PORT=3007
+      - KAFKA_BROKER=kafka:29092
+      - KAFKA_BROKERS=kafka:29092
+      - DB_URL=host=postgres user=postgres password=password dbname=dealan port=5432 sslmode=disable
+      - DATABASE_URL=host=postgres user=postgres password=password dbname=dealan port=5432 sslmode=disable
+    depends_on:
+      - postgres
+      - kafka
+    networks:
+      - dealan_net
+
+  location-service:
+    build: ./location-service
+    image: dealan-location-service:latest
+    container_name: dealan_location_service
+    ports:
+      - "3008:3008"
+    environment:
+      - DB_HOST=postgres
+      - DB_USER=postgres
+      - DB_PASSWORD=password
+      - DB_NAME=dealan
+      - DB_PORT=5432
+      - PORT=3008
+      - KAFKA_BROKER=kafka:29092
+      - KAFKA_BROKERS=kafka:29092
+      - DB_URL=host=postgres user=postgres password=password dbname=dealan port=5432 sslmode=disable
+      - DATABASE_URL=host=postgres user=postgres password=password dbname=dealan port=5432 sslmode=disable
+    depends_on:
+      - postgres
+      - kafka
+    networks:
+      - dealan_net
+
+  map-route-service:
+    build: ./map-route-service
+    image: dealan-map-route-service:latest
+    container_name: dealan_map_route_service
+    ports:
+      - "3009:3009"
+    environment:
+      - DB_HOST=postgres
+      - DB_USER=postgres
+      - DB_PASSWORD=password
+      - DB_NAME=dealan
+      - DB_PORT=5432
+      - PORT=3009
+      - KAFKA_BROKER=kafka:29092
+      - KAFKA_BROKERS=kafka:29092
+      - DB_URL=host=postgres user=postgres password=password dbname=dealan port=5432 sslmode=disable
+      - DATABASE_URL=host=postgres user=postgres password=password dbname=dealan port=5432 sslmode=disable
     depends_on:
       - postgres
       - kafka
@@ -123,12 +299,9 @@ services:
       - dealan_net
 
   payment-service:
-    image: golang:1.23-alpine
+    build: ./payment-service
+    image: dealan-payment-service:latest
     container_name: dealan_payment_service
-    working_dir: /app
-    volumes:
-      - ./payment-service:/app
-    command: sh -c "go mod download && go run cmd/main.go"
     ports:
       - "3010:3010"
     environment:
@@ -139,6 +312,128 @@ services:
       - DB_PORT=5432
       - PORT=3010
       - KAFKA_BROKER=kafka:29092
+      - KAFKA_BROKERS=kafka:29092
+      - DB_URL=host=postgres user=postgres password=password dbname=dealan port=5432 sslmode=disable
+      - DATABASE_URL=host=postgres user=postgres password=password dbname=dealan port=5432 sslmode=disable
+    depends_on:
+      - postgres
+      - kafka
+    networks:
+      - dealan_net
+
+  notification-service:
+    build: ./notification-service
+    image: dealan-notification-service:latest
+    container_name: dealan_notification_service
+    ports:
+      - "3011:3011"
+    environment:
+      - DB_HOST=postgres
+      - DB_USER=postgres
+      - DB_PASSWORD=password
+      - DB_NAME=dealan
+      - DB_PORT=5432
+      - PORT=3011
+      - KAFKA_BROKER=kafka:29092
+      - KAFKA_BROKERS=kafka:29092
+      - DB_URL=host=postgres user=postgres password=password dbname=dealan port=5432 sslmode=disable
+      - DATABASE_URL=host=postgres user=postgres password=password dbname=dealan port=5432 sslmode=disable
+    depends_on:
+      - postgres
+      - kafka
+    networks:
+      - dealan_net
+
+  rating-review-service:
+    build: ./rating-review-service
+    image: dealan-rating-review-service:latest
+    container_name: dealan_rating_review_service
+    ports:
+      - "3012:3012"
+    environment:
+      - DB_HOST=postgres
+      - DB_USER=postgres
+      - DB_PASSWORD=password
+      - DB_NAME=dealan
+      - DB_PORT=5432
+      - PORT=3012
+      - KAFKA_BROKER=kafka:29092
+      - KAFKA_BROKERS=kafka:29092
+      - DB_URL=host=postgres user=postgres password=password dbname=dealan port=5432 sslmode=disable
+      - DATABASE_URL=host=postgres user=postgres password=password dbname=dealan port=5432 sslmode=disable
+    depends_on:
+      - postgres
+      - kafka
+    networks:
+      - dealan_net
+
+  punishment-service:
+    build: ./punishment-service
+    image: dealan-punishment-service:latest
+    container_name: dealan_punishment_service
+    ports:
+      - "3013:3013"
+    environment:
+      - DB_HOST=postgres
+      - DB_USER=postgres
+      - DB_PASSWORD=password
+      - DB_NAME=dealan
+      - DB_PORT=5432
+      - PORT=3013
+      - KAFKA_BROKER=kafka:29092
+      - KAFKA_BROKERS=kafka:29092
+      - DB_URL=host=postgres user=postgres password=password dbname=dealan port=5432 sslmode=disable
+      - DATABASE_URL=host=postgres user=postgres password=password dbname=dealan port=5432 sslmode=disable
+    depends_on:
+      - postgres
+      - kafka
+    networks:
+      - dealan_net
+
+  promo-service:
+    build: ./promo-service
+    image: dealan-promo-service:latest
+    container_name: dealan_promo_service
+    ports:
+      - "3014:3014"
+    environment:
+      - DB_HOST=postgres
+      - DB_USER=postgres
+      - DB_PASSWORD=password
+      - DB_NAME=dealan
+      - DB_PORT=5432
+      - PORT=3014
+      - KAFKA_BROKER=kafka:29092
+      - KAFKA_BROKERS=kafka:29092
+      - REDIS_URL=redis://redis:6379
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - DB_URL=host=postgres user=postgres password=password dbname=dealan port=5432 sslmode=disable
+      - DATABASE_URL=host=postgres user=postgres password=password dbname=dealan port=5432 sslmode=disable
+    depends_on:
+      - postgres
+      - kafka
+      - redis
+    networks:
+      - dealan_net
+
+  chat-service:
+    build: ./chat-service
+    image: dealan-chat-service:latest
+    container_name: dealan_chat_service
+    ports:
+      - "3015:3015"
+    environment:
+      - DB_HOST=postgres
+      - DB_USER=postgres
+      - DB_PASSWORD=password
+      - DB_NAME=dealan
+      - DB_PORT=5432
+      - PORT=3015
+      - KAFKA_BROKER=kafka:29092
+      - KAFKA_BROKERS=kafka:29092
+      - DB_URL=host=postgres user=postgres password=password dbname=dealan port=5432 sslmode=disable
+      - DATABASE_URL=host=postgres user=postgres password=password dbname=dealan port=5432 sslmode=disable
     depends_on:
       - postgres
       - kafka

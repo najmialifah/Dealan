@@ -16,9 +16,15 @@ spec:
     spec:
       containers:
       - name: punishment-service
-        image: kelompokdealan/punishment-service:latest
+        image: dealanregistry.azurecr.io/dealan-punishment-service:latest
+        env:
+        - name: PORT
+          value: "3013"
+        envFrom:
+        - configMapRef:
+            name: dealan-config
         ports:
-        - containerPort: 8086
+        - containerPort: 3013
 ---
 apiVersion: v1
 kind: Service
@@ -30,5 +36,7 @@ spec:
   ports:
     - protocol: TCP
       port: 8086
-      targetPort: 8086
+      targetPort: 3013
   type: ClusterIP
+
+

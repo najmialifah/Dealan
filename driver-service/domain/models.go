@@ -65,3 +65,8 @@ type UpdateStatusRequest struct {
 	IsOnline     bool   `json:"is_online"`
 	LayananAktif string `json:"layanan_aktif"` // misal: "ride,send"
 }
+
+// TableName mengoverride nama tabel default GORM menjadi driver_status (singular) sesuai dengan DDL
+func (DriverStatus) TableName() string {
+	return "driver_status"
+}

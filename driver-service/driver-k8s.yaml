@@ -16,10 +16,16 @@ spec:
     spec:
       containers:
       - name: driver-container
-        image: kelompokdealan/driver-service:latest # Menembak ke repositori driver-service di Docker Hub bersama
+        image: dealanregistry.azurecr.io/dealan-driver-service:latest # Menembak ke repositori driver-service di Docker Hub bersama
         imagePullPolicy: Always
+        env:
+        - name: PORT
+          value: "3003"
+        envFrom:
+        - configMapRef:
+            name: dealan-config
         ports:
-        - containerPort: 8083 # Port internal aplikasi Driver Service
+        - containerPort: 3003 # Port internal aplikasi Driver Service
 ---
 apiVersion: v1
 kind: Service
@@ -32,4 +38,5 @@ spec:
   ports:
   - protocol: TCP
     port: 8083
-    targetPort: 8083
+    targetPort: 3003
+

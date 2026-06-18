@@ -14,10 +14,16 @@ spec:
     spec:
       containers:
       - name: order-app
-        image: kelompokdealan/order-service:latest
+        image: dealanregistry.azurecr.io/dealan-order-service:latest
         imagePullPolicy: Always
+        env:
+        - name: PORT
+          value: "3004"
+        envFrom:
+        - configMapRef:
+            name: dealan-config
         ports:
-        - containerPort: 8089
+        - containerPort: 3004
 ---
 apiVersion: v1
 kind: Service
@@ -29,5 +35,6 @@ spec:
   ports:
     - protocol: TCP
       port: 8089
-      targetPort: 8089
+      targetPort: 3004
   type: ClusterIP
+

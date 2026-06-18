@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"net/http"
+	"os"
 
 	"matching-service/controller"
 	//"matching-service/domain"
@@ -18,7 +19,13 @@ import (
 
 func main() {
 	// 1. SETUP DATABASE (PostgreSQL / Supabase)
-	dsn := "host=localhost user=postgres password=postgres dbname=dealan port=5432 sslmode=disable"
+	dsn := os.Getenv("DB_URL")
+	if dsn == "" {
+		dsn = os.Getenv("DATABASE_URL")
+	}
+	if dsn == "" {
+		dsn = "host=localhost user=postgres password=postgres dbname=dealan port=5432 sslmode=disable"
+	}
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
 		log.Println("[Warning] Gagal connect Database:", err)
@@ -27,8 +34,12 @@ func main() {
 	}
 
 	// 2. SETUP KAFKA PRODUCER
+	kafkaBrokersEnv := os.Getenv("KAFKA_BROKERS")
+	if kafkaBrokersEnv == "" {
+		kafkaBrokersEnv = "localhost:9092"
+	}
 	kafkaWriter := &kafka.Writer{
-		Addr:     kafka.TCP("localhost:9092"),
+		Addr:     kafka.TCP(kafkaBrokersEnv),
 		Topic:    "order.matched",
 		Balancer: &kafka.LeastBytes{},
 	}

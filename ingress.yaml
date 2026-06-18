@@ -2,9 +2,8 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: dealan-ingress
-  annotations:
-    nginx.ingress.kubernetes.io/rewrite-target: /
 spec:
+  ingressClassName: nginx
   rules:
   - http:
       paths:
@@ -15,17 +14,101 @@ spec:
             name: auth-service-svc
             port:
               number: 8081
-      - path: /user
+      - path: /users
         pathType: Prefix
         backend:
           service:
             name: user-service-svc
             port:
               number: 8082
-      - path: /driver
+      - path: /drivers
         pathType: Prefix
         backend:
           service:
             name: driver-service-svc
             port:
               number: 8083
+      - path: /chat
+        pathType: Prefix
+        backend:
+          service:
+            name: chat-service
+            port:
+              number: 8087
+      - path: /api/v1/locations
+        pathType: Prefix
+        backend:
+          service:
+            name: location-service
+            port:
+              number: 8090
+      - path: /route
+        pathType: Prefix
+        backend:
+          service:
+            name: map-route-service
+            port:
+              number: 8088
+      - path: /api/v1/match
+        pathType: Prefix
+        backend:
+          service:
+            name: matching-service
+            port:
+              number: 8091
+      - path: /notification
+        pathType: Prefix
+        backend:
+          service:
+            name: notification-service
+            port:
+              number: 8084
+      - path: /api/v1/orders
+        pathType: Prefix
+        backend:
+          service:
+            name: order-service
+            port:
+              number: 8089
+      - path: /payments
+        pathType: Prefix
+        backend:
+          service:
+            name: payment-service
+            port:
+              number: 80
+      - path: /pricing
+        pathType: Prefix
+        backend:
+          service:
+            name: pricing-service
+            port:
+              number: 80
+      - path: /promo
+        pathType: Prefix
+        backend:
+          service:
+            name: promo-service
+            port:
+              number: 8080
+      - path: /punishment
+        pathType: Prefix
+        backend:
+          service:
+            name: punishment-service
+            port:
+              number: 8086
+      - path: /rating
+        pathType: Prefix
+        backend:
+          service:
+            name: rating-review-service
+            port:
+              number: 8085
+      - path: /shipments
+        pathType: Prefix
+        backend:
+          service:
+            name: shipment-service
+            port:
+              number: 80
